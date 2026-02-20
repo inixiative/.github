@@ -1,8 +1,7 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/inixiative/.github/main/brand/icon-400x400.png" alt="inixiative" width="120" />
+  <img src="https://raw.githubusercontent.com/inixiative/.github/main/icon-400x400.png" alt="inixiative" width="120" />
 </p>
 
-<h3 align="center">&lt;iXi&gt;</h3>
 <p align="center"><strong>technology for cooperation</strong></p>
 
 ---
