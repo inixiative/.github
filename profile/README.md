@@ -13,10 +13,12 @@ We're building a cooperation platform — identity, governance, and investment i
 - **[template](https://github.com/inixiative/template)** *(in progress)* — Reusable SaaS monorepo foundation. Bun, Hono, Prisma 7, React/TanStack, BullMQ, Redis — auth, permissions, jobs, and multi-tenant patterns out of the box.
 - **[json-rules](https://github.com/inixiative/json-rules)** — Type-safe rules engine with 38 operators. Declarative business logic for permissions, pricing, eligibility, and form visibility.
 - **[hivemind](https://github.com/inixiative/hivemind)** — Multi-agent coordination library. Message bus with role-scoped channels for AI-powered workflows.
+- **[foundry](https://github.com/inixiative/foundry)** *(in progress)* — Context-layered agent orchestration harness. Primitives for sessions, middleware, tracing, and multi-provider LLM integration on Bun.
 - **[whitepaper](https://github.com/inixiative/whitepaper)** *(in progress)* — Adaptive governance infrastructure for cooperative societies.
 
 ### Coming Soon
 
+- **foundry-oracle** — Corpus optimization engine. Automated recursion loop that captures agent interactions, generates test fixtures, and improves AI context through multi-agent evaluation.
 - **rules-builder** — Visual rule builder UI for json-rules. Drag-and-drop condition authoring.
 - **inixiative platform** — Identity, permissions, escrow, and governance. The shared infrastructure layer for cooperation at scale.
 
