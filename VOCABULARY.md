@@ -196,14 +196,10 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **makeError / AppError** — throwable `HTTPException` with `{ error, message, guidance, fieldErrors?, requestId }`.
 - **HTTP_ERROR_MAP** — drift-free default labels/guidance per status code.
 - **errorHandlerMiddleware** — global `onError` normalizing Zod/Prisma/HTTPException/raw errors, stamps `requestId`.
-- **paginate()** — list endpoints: search/filter/orderBy/pagination from context; returns `{ data, pagination }`.
-- **buildWhereClause** — combine client search/filters with server-enforced scope, validated against lens picks.
-- **Pseudo-GraphQL filtering** — bracket-notation `filter[user.email][gte]=…`; GraphQL flexibility, URL-based and cacheable.
-- **`[:]` marker** — pass real `null`/`true`/`false` through all-string query params (allowlisted, no eval).
-- **orderBy** — `?orderBy[]=field:dir`, lens-constrained, path-notation guarded against injection.
-- **dialect** — provider-specific JSON path filtering (Postgres array vs MySQL JSONPath).
+- **paginate()** — list-endpoint orchestrator: applies search + filter + ordering + pagination from the request; returns `{ data, pagination }`.
+- **Bracket-notation query language (`bracketQuery`)** — one URL syntax for **filtering and ordering**: `filter[user.email][gte]=…` and `?orderBy[]=field:dir` (GraphQL-like, URL-based, cacheable). `parseBracketNotation` parses the request into a `BracketQueryRecord` (the `bracketQuery` context var); `buildWhereClause` compiles filters into a Prisma `where` (merged with server scope, lens-validated) and `buildOrderBy` the sort (path-notation guarded against injection); the `[:]` marker carries real `null`/`true`/`false` through all-string params (allowlisted, no eval); `dialect` handles provider-specific JSON-path filtering (Postgres array vs MySQL JSONPath); symbols/operators live in `@template/shared/bracketQuery`. FE mirror: `buildFilterQuery`/`serializeBracketQuery`.
 - **Batch API** — many requests in one call; strategies `transactionAll/transactionPerRound/allowFailures/failOnRound`; `<<round.req.path>>` interpolation.
-- **OpenAPI 3.1 generation** — full spec + Scalar UI at `/docs`; drives the SDK.
+- **OpenAPI 3.1 generation** — full 3.1.0 spec served as JSON at `/openapi/docs` (via `app.doc31`); drives the SDK.
 - **Generated SDK (`@template/sdk`)** — hey-api typed client + TanStack Query hooks + query keys from the OpenAPI spec.
 - **Module structure** — allowlisted folders per `modules/<name>/`: routes/controllers/services/schemas/queries/tests/...; shared code → `lib/`.
 - **Router exports** — `<resource>Router` / `admin<Resource>Router`, mounted in `index.ts`.
@@ -219,7 +215,6 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **getResource / resourceContextMiddleware** — auto-load the `:id` resource (404 on 0, 409 on >1) before authorization.
 - **scopeNarrowing** — merge per-request tenant/ownership `where` scope into the filter lens.
 - **Database scope (AsyncLocalStorage)** — request/job correlation id; `getScopeId`/`isInTxn`.
-- **`parseBracketNotation` / `bracketQuery`** — `parseBracketNotation` turns bracket-notation query strings into a nested `BracketQueryRecord`; the parsed result rides the request as the `bracketQuery` context var (symbol/operator vocab in `@template/shared/bracketQuery`).
 - **getValidatedBody / getValidatedQuery** — typed validated input outside route-typed context.
 
 ### Adapters
@@ -247,12 +242,10 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **db.findForUpdate** — row-level pessimistic lock (transaction-only).
 - **assertNoNestedWrites** — reject nested writes that would skip lifecycle hooks (validation/audit).
 - **Disabled createMany/updateMany** — they return no rows (break hooks); use `*AndReturn`.
-- **delegateFor / pass-the-delegate** — pass a concrete delegate so TS infers exact types for dynamic model access.
+- **`query` / pass-the-delegate** — pass a concrete delegate (`query.findMany(db.user, …)`) so TS infers exact types; `RuntimeDelegate`/`AnyCrudDelegate` cover runtime-only model access.
 - **hydrate** — batch-resolve a record's FK relations (no N+1) from `prismaMap`.
 - **Lens helpers (lensFor/includeFromLens/prune/redactLens/fetchLens)** — json-rules lens over the schema → Prisma include/projection/redaction.
-- **Constraint helpers** — `addCheckConstraint`/`addUniqueWhereNotNull`/`addGistIndex`/`addPolymorphicConstraint` for Postgres features Prisma lacks.
 - **Path notation (buildNestedPath/validatePathNotation)** — safe dot-notation nested queries (charset/depth guarded).
-- **Test factories (`build*`/`create*`)** — in-memory vs persisted records; auto-infer FK deps; `createFactory(model, config)`.
 - **Seed (SeedFile / `--prime`)** — FK-ordered idempotent upserts by UUIDv7; `prime` records are dev-only.
 - **Split schema** — one `.prisma` file per model, combined at generation (fewer merge conflicts).
 - **Zod schema generation** — `<Model>ScalarSchema`/input schemas derived from Prisma.
@@ -268,7 +261,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **immutableFields hook** — strip `id`/`createdAt`/FKs (and overrides) on update; silently, never throws.
 - **rules hook + RulesRegistry** — declarative per-model field validation via json-rules `Condition`.
 - **shadowMerge** — merge `previous` with update data so atomic ops (`increment`/`push`) validate against final state.
-- **cache hook + CACHE_REFERENCE** — invalidate cache keys a mutated record is reachable by, post-commit.
+- **cache hook + `cacheReference`** — invalidate cache keys a mutated record is reachable by, post-commit (per-model key map in `hooks/cache/constants/cacheReference.ts`).
 - **webhooks hook + circuit breaker** — enqueue signed `sendWebhook` post-commit; auto-disable a subscription after 5 fails.
 - **orderedList hook** — dense `[1..N]` position columns per scope, bulk-safe via SQL CTEs; soft-deletes get negative sentinels.
 - **contactRules hook + ContactRegistry** — per-`ContactType` parse/canonicalize/validate/uniqueness.
@@ -285,7 +278,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **BetterAuth** — session-based browser auth (signup/signin/OAuth) issuing a stateless JWT.
 - **Stateless JWT session** — JWT in HTTP-only cookie (email/pw) or localStorage Bearer (OAuth); `cookieCache` skips DB validation for a window.
 - **secondaryStorage (Redis)** — fast permission/org caches; not the primary session store.
-- **AuthProvider (multi-provider)** — per-platform/per-org OAuth/SAML; platform (`organizationId=null`) vs org-specific; encrypted secrets.
+- **AuthProvider (per-org OAuth/SAML)** — org-scoped (`organizationId` required) OAuth/SAML config with encrypted secrets; platform-wide providers are env-driven via `getPlatformProviders()`, not `AuthProvider` rows.
 - **Token authentication** — `Authorization: Bearer`/`?token=`, SHA-256 hashed, Redis-cached; `keyPrefix` identifies without exposing.
 - **Token owner / hierarchical scope** — polymorphic owner (User/Org/OrgUser/Space/SpaceUser); scope determines reach.
 - **Auth middleware chain** — `prepareRequest → tokenAuth → authMiddleware → spoof`; token wins over cookie.
@@ -319,13 +312,13 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: sensitive fields must be encrypted at rest with rotation and tamper-detection, but adding a field shouldn't require touching hooks/rotation/validation — a registry makes it one-line, auto-discovered.*
 
 - **AES-256-GCM field encryption** — authenticated per-field encryption, random IV, auth tag.
-- **encryptionService / EncryptedFieldData** — `{ciphertext, version, iv, authTag}` (base64).
+- **createEncryption / EncryptedFieldData** — `createEncryption(keyring)` → `{ encrypt, decrypt }`; `EncryptedFieldData` = `{ciphertext, version, iv, authTag}` (base64).
 - **AAD (buildAAD)** — bind ciphertext to immutable record fields; prevents transplant to another record.
 - **ENCRYPTED_MODELS registry** — single source of which fields encrypt; hooks/rotation/validation auto-discover.
 - **Column-triplet convention** — `encrypted{Field}` + `…Metadata` + `…KeyVersion`; `encryptField`/`decryptField` generics.
 - **EncryptionKeyring / key versions** — current + previous key for dual-key zero-downtime rotation.
 - **rotateEncryptionKeys (singleton job)** — idempotent re-encrypt via `updateManyAndReturn where version=N`.
-- **CI version validation** — block deploys with version gaps/downgrades/mixed versions.
+- **`validateEncryptionVersions`** — rejects key-version gaps/downgrades/mixed versions (the deploy-time guard; currently exercised in tests).
 
 ### App events & jobs
 
@@ -371,7 +364,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: clients need instant "your data changed" signals across load-balanced servers, without leaking data or hand-managing subscriptions — refetch triggers over Redis pub/sub do it.*
 
-- **WebSocket server** — native Bun WS on the Hono port; token auth via `?token=`.
+- **WebSocket server** — native Bun WS on the Hono port; anonymous at handshake, then token auth via an in-band `authenticate` message.
 - **Connection lifecycle / registry** — track by id/user/channel; identity via `authenticate`/`spoof`/`logout`.
 - **channelKey / WSEvent** — query identity key; data-free `{category:'query', action:'refetch', key}` contract.
 - **sendToChannel / sendToUser / broadcast** — publish to `ws:broadcast` Redis channel → fan out to all instances.
@@ -409,9 +402,9 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **user-context slices (superadmin)** — same store, user-context-first, no forced tenant switching.
 - **File-based routing (TanStack Router)** — `createFileRoute` under `app/routes/`; nesting via `<Outlet/>`.
 - **`__root` / layout routes** — `_authenticated` (guard+AppShell), `_public`, `_fullscreen`.
-- **Guards (requireAuth/requireGuest)** — redirect in `beforeLoad`, preserve `redirectTo`/context.
+- **Guards (requireAuth/requirePublic)** — redirect in `beforeLoad`, preserve `redirectTo`/context.
 - **useAuthenticatedRouting** — sync tenant context + spoof between URL and store; route permission check.
-- **Navigation config** — declarative, context-aware, permission-filtered nav; feature/section/item pattern.
+- **Navigation config (`NavConfig`/`NavItem`)** — declarative, permission-filtered nav: context-keyed (`user`/`organization`/`space`/`public`) recursive `NavItem` trees.
 - **apiQuery / apiMutation** — typed SDK wrappers (unwrap `data.data` / keep full response); auth+spoof headers.
 - **Theme system (three-tier CSS vars)** — `--app-*` → `--space-*` → `--primary`; `useDarkMode`/`useSpaceTheme`.
 
@@ -436,7 +429,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **makeDataConfig / useDataFilters / useQueryMetadata** — derive searchable/orderable/enum fields from the OpenAPI spec; shared filter state.
 - **buildFilterQuery / serializeBracketQuery** — serialize filter/sort state to bracket-notation query params.
 - **useInfiniteScrollTrigger / useScrollState / useSectionHash** — IntersectionObserver load-more; scroll restore; hash↔section deep-linking.
-- **useOptimisticMutation / useOptimisticListMutation** — optimistic cache updates with rollback.
+- **useOptimisticMutation + createOptimisticListTarget** — optimistic cache updates with rollback; `createOptimisticListTarget` adapts it for list create/update/delete.
 - **usePermission / useInquiryPermission** — turn a permission check into `{show, disable, disabledText}`.
 - **useAuthProviders / useValidateUniqueness / useDebounce / useMediaQuery** — provider fetch / live availability / debounce / breakpoint.
 - **usePageMeta / useBreadcrumbs / useLanguage** — document title+meta / crumb trail / locale.
@@ -467,7 +460,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: confidence comes from data factories that mirror reality and gates that block drift — so tests are fast to write, isolated, and the repo's bespoke conventions are enforced mechanically.*
 
-- **Test factories (`build*`/`create*`)** — in-memory vs persisted; FK auto-inference; `getNextSeq()` for unique values.
+- **Test factories (`build*`/`create*`)** — in-memory (`build*`) vs persisted (`create*`) records; auto-infer FK deps; `createFactory(model, config)`; `getNextSeq()` for unique values (`packages/db/src/test/factories`).
 - **`__serialize()`** — convert `Date`→ISO to assert against API/SDK string-timestamp shapes (CI-enforced in UI tests).
 - **createTestApp** — Hono app with mocked auth/tenancy; auto superadmin bypass.
 - **request helpers (get/post/.../json)** — concise HTTP calls + `{data, pagination}` parsing.
