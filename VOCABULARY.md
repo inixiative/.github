@@ -93,8 +93,8 @@ A `LensNarrowing` node carries `picks`/`omits` (field visibility), `enumPicks`/`
 
 #### lensValuePicker
 **Solves:** "pick any value reachable through a lens" — the shared atom behind a rule's `field` (LHS) and `path` (RHS reference), reused downstream (permissions, email).
-**How:** enumerates leaf values across relations as dotted paths, with kind and allowed values.
-<small>API · `lensValuePicker(lens,{maxDepth})` · `useLensValuePicker`.</small>
+**How:** enumerates leaf values across relations as dotted paths, with kind and allowed values. A `Json` column is flagged `acceptsSubPath` (it has no declared sub-fields, but the kernel resolves a dotted JSON path in `check`/`toPrisma`/`toSql`), so a renderer can offer freeform descent — `metadata` → `metadata.theme`.
+<small>API · `lensValuePicker(lens,{maxDepth})` · `useLensValuePicker` · `LensValueOption.acceptsSubPath` (JSON freeform sub-path).</small>
 
 ### 8 · Downstream layers
 
