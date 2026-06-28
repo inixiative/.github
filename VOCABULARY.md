@@ -1,6 +1,6 @@
 # Vocabulary
 
-The inixiative ecosystem is built **"solve it once"**: each concern has one canonical home, and new features resolve *to* it rather than around it. This page is the glossary of every primitive — first the **ecosystem spine** (the cross-library kernel: rules, lens, sources, builders, and the layers that compose on them), then the **template** that consumes it (a production SaaS foundation). Each entry gives **what it solves** (the problem it exists for) and **how it works** (the mechanism).
+The inixiative ecosystem is built **"solve it once"**: each concern has one canonical home, and new features resolve *to* it rather than around it. This page is the glossary of every primitive — first the **ecosystem spine** (the cross-library kernel: rules, lens, sources, builders, and the layers that compose on them), then the **template** that consumes it (a production SaaS foundation). Each entry names a **concept** (what it solves / how it works); the methods on that concept sit beneath it in a dim API row.
 
 ```
 rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check / compile
@@ -123,7 +123,7 @@ A `LensNarrowing` node carries `picks`/`omits` (field visibility), `enumPicks`/`
 
 ## Part II · The template
 
-A production SaaS foundation (`@inixiative/template`) that consumes the spine. A SaaS backend accretes the same load-bearing concerns over and over — auth, tenancy, permissions, side effects, background work, caching, real-time, audit. The template solves each *once*, names it, and reuses it, so a new feature resolves *to* existing primitives instead of re-inventing them. Each `###` section opens with the problem that whole layer addresses.
+A production SaaS foundation (`@inixiative/template`) that consumes the spine. A SaaS backend accretes the same load-bearing concerns over and over — auth, tenancy, permissions, side effects, background work, caching, real-time, audit. The template solves each *once*, names it, and reuses it. Each section opens with the problem that whole layer addresses; each entry is a **concept**, with its methods in a dim `API ·` row.
 
 ### Core platform & build
 
@@ -131,37 +131,32 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 - **Four apps** — one platform, four perspectives: `web` (participant), `admin` (operator), `superadmin` (platform ops), `api` (Hono backend).
 - **Bun workspaces monorepo** — share code without publishing; `apps/*` + `packages/*` (`db`, `shared`, `ui`, `permissions`, `email`, `sdk`).
-- **Turborepo** — task graph with caching + dependency-aware watch; `turbo watch local` runs all apps, `#` filters one.
+- **Turborepo** — task graph with caching + dependency-aware watch. <small>CLI · `turbo watch local` runs all apps · `#<app>` filters one</small>
 - **Generation chain** — `db:generate → generate:openapi → generate:sdk → generate:routes`; `.gen.` files are template-owned, git/lint/search-ignored.
 - **Path aliases** — `#/` app-internal, `@template/*` cross-package; `../` relative imports forbidden outside barrels.
 - **Barrel files (top-level only)** — only package/module `index.ts` re-exports; everything else imports source directly.
-- **Environment names** — `local | test | pr | staging | prod`; `isLocal/isTest/...` flags; `.env.<env>` files (local/test) + Infisical (cloud).
-- **with-env** — run any command with the right env loaded (`bun run with <env> <app> <cmd>`).
+- **Environment names** — `local | test | pr | staging | prod`; `isLocal/isTest/…` flags; `.env.<env>` files (local/test) + Infisical (cloud).
+- **with-env** — run any command with the right env loaded. <small>CLI · `bun run with <env> <app> <cmd>`</small>
 - **PR environments** — ephemeral per-PR stack (DB branch, previews, isolated secrets), destroyed on close.
 - **Docker Compose dev services** — local Postgres/Redis/MinIO; pinned project name so worktrees share one stack.
-- **`bun run init` vs `setup`** — `init` = one-time provisioning (Ink TUI: secrets/services); `setup` = per-dev bring-up (deps/Docker/Prisma/seed).
+- **init vs setup** — `init` = one-time provisioning (Ink TUI: secrets/services); `setup` = per-dev bring-up (deps/Docker/Prisma/seed).
 - **Worktree tooling** — isolated parallel checkouts sharing one container stack, per-slot DB names + bucket prefixes.
 
 ### API & routing
 
 *Why: every endpoint should look the same, validate itself, and document itself — so you write business logic, not boilerplate, and the frontend gets a typed client for free.*
 
-- **File-based route auto-registration** — drop route+controller in a module, `autoRegisterRoutes()` wires them on startup.
-- **Route templates** — `createRoute/readRoute/updateRoute/deleteRoute/actionRoute` emit consistent OpenAPI 3.1 + cut ~70% of boilerplate.
-- **makeController** — type-safe handler bound to a route; only the route's declared statuses are respondable (wrong-shape responses caught at compile time).
-- **respond (ok/created/noContent)** — standard status + `{ data }` envelope.
-- **`{ data }` envelope** — uniform response shape across single/list endpoints, so the frontend handles every response the same way.
-- **makeError / AppError** — throwable `HTTPException` with `{ error, message, guidance, fieldErrors?, requestId }`.
-- **HTTP_ERROR_MAP** — drift-free default labels/guidance per status code.
-- **errorHandlerMiddleware** — global `onError` normalizing Zod/Prisma/HTTPException/raw errors, stamps `requestId`.
+- **File-based route auto-registration** — drop route+controller in a module; wired on startup. <small>API · `autoRegisterRoutes()`</small>
+- **Route templates** — consistent OpenAPI 3.1 + ~70% less boilerplate. <small>API · `createRoute` · `readRoute` · `updateRoute` · `deleteRoute` · `actionRoute`</small>
+- **makeController** — type-safe handler bound to a route; only the route's declared statuses are respondable (wrong-shape responses caught at compile time). <small>API · `respond.ok`/`respond.created`/`respond.noContent` → the uniform `{ data }` envelope</small>
+- **Errors** — one error contract `{ error, message, guidance, fieldErrors?, requestId }`; a global `onError` normalizes Zod/Prisma/HTTPException/raw and stamps `requestId`; drift-free labels per status code. <small>API · `makeError`/`AppError` · `HTTP_ERROR_MAP` · `errorHandlerMiddleware`</small>
 - **paginate()** — list-endpoint orchestrator: applies search + filter + ordering + pagination from the request; returns `{ data, pagination }`.
-- **Bracket-notation query language (`bracketQuery`)** — one URL syntax for **filtering and ordering**: `filter[user.email][gte]=…` and `?orderBy[]=field:dir` (GraphQL-like, URL-based, cacheable). `parseBracketNotation` parses the request into a `BracketQueryRecord` (the `bracketQuery` context var); `buildWhereClause` compiles filters into a Prisma `where` (merged with server scope, lens-validated) and `buildOrderBy` the sort (path-notation guarded against injection); the `[:]` marker carries real `null`/`true`/`false` through all-string params (allowlisted, no eval); `dialect` handles provider-specific JSON-path filtering (Postgres array vs MySQL JSONPath); symbols/operators live in `@template/shared/bracketQuery`. FE mirror: `buildFilterQuery`/`serializeBracketQuery`.
-- **Batch API** — many requests in one call; strategies `transactionAll/transactionPerRound/allowFailures/failOnRound`; `<<round.req.path>>` interpolation.
+- **Bracket-notation query language (`bracketQuery`)** — one URL syntax for **filtering and ordering**: `filter[user.email][gte]=…` and `?orderBy[]=field:dir` (GraphQL-like, URL-based, cacheable); the `[:]` marker carries real `null`/`true`/`false` through all-string params (allowlisted, no eval); `dialect` handles provider-specific JSON-path filtering. <small>API · `parseBracketNotation` → `BracketQueryRecord` (the `bracketQuery` ctx var) · `buildWhereClause` (filters → Prisma `where`, scope-merged, lens-validated) · `buildOrderBy` (sort) · `@template/shared/bracketQuery` (symbols/operators) · FE: `buildFilterQuery`/`serializeBracketQuery`</small>
+- **Batch API** — many requests in one call; strategies `transactionAll`/`transactionPerRound`/`allowFailures`/`failOnRound`; `<<round.req.path>>` interpolation.
 - **OpenAPI 3.1 generation** — full 3.1.0 spec served as JSON at `/openapi/docs` (via `app.doc31`); drives the SDK.
 - **Generated SDK (`@template/sdk`)** — hey-api typed client + TanStack Query hooks + query keys from the OpenAPI spec.
-- **Module structure** — allowlisted folders per `modules/<name>/`: routes/controllers/services/schemas/queries/tests/...; shared code → `lib/`.
-- **Router exports** — `<resource>Router` / `admin<Resource>Router`, mounted in `index.ts`.
-- **Modules constant** — type-safe model-name registry; `Modules.organization` not `'organizations'`.
+- **Module structure** — allowlisted folders per `modules/<name>/`: routes/controllers/services/schemas/queries/tests/…; shared code → `lib/`.
+- **Router exports / Modules constant** — `<resource>Router`/`admin<Resource>Router` mounted in `index.ts`; type-safe model-name registry (`Modules.organization`, not `'organizations'`).
 
 ### Request context & errors
 
@@ -172,17 +167,14 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **getActor** — resolve the effective actor uniformly across session and org/space tokens.
 - **getResource / resourceContextMiddleware** — auto-load the `:id` resource (404 on 0, 409 on >1) before authorization.
 - **scopeNarrowing** — merge per-request tenant/ownership `where` scope into the filter lens.
-- **Database scope (AsyncLocalStorage)** — request/job correlation id; `getScopeId`/`isInTxn`.
+- **Database scope (AsyncLocalStorage)** — request/job correlation id. <small>API · `db.getScopeId()` · `db.isInTxn()`</small>
 - **getValidatedBody / getValidatedQuery** — typed validated input outside route-typed context.
 
 ### Adapters
 
 *Why: external services (storage, email, error reporting) change per environment and shouldn't leak SDK details into app code — one interface, swappable providers, env-selected.*
 
-- **Adapter pattern** — couple to swappable external SDKs via a role interface + providers + env wiring.
-- **makeAdapterRouter** — pick one provider per environment (prod/staging/pr/default).
-- **makeAdapterRegistry** — pick a provider explicitly by name.
-- **makeBroadcastRegistry** — fan one operation out to many providers via `Promise.allSettled`.
+- **Adapter pattern** — couple to swappable external SDKs via a role interface + providers + env wiring. <small>API · `makeAdapterRouter` (one provider per env) · `makeAdapterRegistry` (pick by name) · `makeBroadcastRegistry` (fan out via `Promise.allSettled`)</small>
 - **storage adapter (s3)** — provider-agnostic blob storage (presigned POSTs); MinIO locally.
 - **errorReporter adapter** — console locally, Sentry in prod, behind the router.
 - **email client adapter** — `EmailClient` with Resend (prod) / Console (dev) providers, per-tenant keys.
@@ -193,17 +185,15 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 - **prismaMap (`@inixiative/prisma-map`)** — generated runtime model/field/relation map; powers hooks, factories, lenses.
 - **Typed model IDs** — phantom-branded `UserId`/`OrganizationId` prevent cross-model ID mixups at compile time.
-- **Model name utilities** — `ModelName`↔`AccessorName` conversion + `isModelName`/`isAccessorName` guards.
+- **Model name utilities** — `ModelName` ↔ `AccessorName` conversion. <small>API · `isModelName` · `isAccessorName`</small>
 - **UUIDv7 IDs** — time-sortable PKs without coordination; better index locality than v4.
-- **db client (txn-aware proxy)** — routes to the active transaction when present, else raw; `db.raw.*` bypasses.
-- **db.scope / db.txn / db.onCommit** — scoped state; auto-merging transactions; after-commit side effects.
-- **db.findForUpdate** — row-level pessimistic lock (transaction-only).
+- **db client (txn-aware proxy)** — routes to the active transaction when present, else raw. <small>API · `db.scope` · `db.txn` (auto-merging) · `db.onCommit` (after-commit side effects) · `db.findForUpdate` (row lock, txn-only) · `db.raw.*` (bypass)</small>
 - **assertNoNestedWrites** — reject nested writes that would skip lifecycle hooks (validation/audit).
 - **Disabled createMany/updateMany** — they return no rows (break hooks); use `*AndReturn`.
-- **`query` / pass-the-delegate** — pass a concrete delegate (`query.findMany(db.user, …)`) so TS infers exact types; `RuntimeDelegate`/`AnyCrudDelegate` cover runtime-only model access.
+- **pass-the-delegate** — pass a concrete delegate so TS infers exact types for dynamic model access. <small>API · `query.findMany(db.user, …)` · `RuntimeDelegate`/`AnyCrudDelegate` (runtime-only access)</small>
 - **hydrate** — batch-resolve a record's FK relations (no N+1) from `prismaMap`.
-- **Lens helpers (lensFor/includeFromLens/prune/redactLens/fetchLens)** — json-rules lens over the schema → Prisma include/projection/redaction.
-- **Path notation (buildNestedPath/validatePathNotation)** — safe dot-notation nested queries (charset/depth guarded).
+- **Lens helpers** — json-rules lens over the schema → Prisma include/projection/redaction. <small>API · `lensFor` · `includeFromLens` · `prune` · `redactLens` · `fetchLens`</small>
+- **Path notation** — safe dot-notation nested queries (charset/depth guarded). <small>API · `buildNestedPath` · `validatePathNotation`</small>
 - **Seed (SeedFile / `--prime`)** — FK-ordered idempotent upserts by UUIDv7; `prime` records are dev-only.
 - **Split schema** — one `.prisma` file per model, combined at generation (fewer merge conflicts).
 - **Zod schema generation** — `<Model>ScalarSchema`/input schemas derived from Prisma.
@@ -212,9 +202,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: cross-cutting concerns (audit, validation, cache, webhooks, ordering) must fire on every mutation, inside its transaction, without sprinkling calls everywhere — one extension runs them declaratively.*
 
-- **mutationLifeCycle extension** — Prisma client extension wrapping create/update/delete/upsert with auto-txn + hooks + previous-state fetch.
-- **Mutation lifecycle hooks** — `{model, action, args, result, previous}` callbacks at `before`/`after` timing.
-- **registerDbHook / hook registry** — central registration + dispatcher run by the lifecycle extension; `registerHooks()` at boot.
+- **mutationLifeCycle extension** — Prisma client extension wrapping create/update/delete/upsert with auto-txn + hooks + previous-state fetch. <small>API · `registerDbHook` / hook registry · `registerHooks()` at boot · hook payload `{model, action, args, result, previous}` at `before`/`after`</small>
 - **auditLog hook** — immutable before/after/changes diff + actor context for `AUDIT_ENABLED_MODELS`.
 - **immutableFields hook** — strip `id`/`createdAt`/FKs (and overrides) on update; silently, never throws.
 - **rules hook + RulesRegistry** — declarative per-model field validation via json-rules `Condition`.
@@ -242,26 +230,19 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **Auth middleware chain** — `prepareRequest → tokenAuth → authMiddleware → spoof`; token wins over cookie.
 - **setUserContext / refreshUserContext** — populate user/org/space + permissions; rebuild mid-request after changes.
 - **Spoofing (impersonation)** — superadmin `x-spoof-user-email`; records `spoofedBy`; response headers + UI badge for auditability.
-- **validateUser / validateActor / validateNotToken / validateSuperadmin** — auth-method/role gates.
-- **basicAuthMiddleware** — HTTP Basic gate for protected utilities (e.g. BullBoard).
+- **Auth gates** — auth-method/role guards. <small>API · `validateUser` · `validateActor` · `validateNotToken` · `validateSuperadmin` · `basicAuthMiddleware` (HTTP Basic for utilities, e.g. BullBoard)</small>
 
 ### Authorization (RBAC / ABAC / ReBAC)
 
 *Why: real permissions are roles AND attributes AND relationships at once — one engine expresses all three declaratively, so access rules are data, not scattered `if` checks.*
 
-- **Permix** — per-request permission checker (`createPermissions()`), `check/setup/setSuperadmin`.
+- **Permix** — per-request permission checker. <small>API · `createPermissions()` · `check` · `setup` · `setSuperadmin`</small>
 - **PlatformRole / superadmin bypass** — `user|superadmin`; superadmin short-circuits `check()` to true (with audit).
-- **Role (RBAC) + roleHierarchy** — `owner>admin>member>viewer`; `lesserRole`/`greaterRole`, `rolesAtOrAbove`.
-- **StandardAction** — `read|operate|manage|own`; `roleToStandardAction` maps role→action.
-- **Entitlements (ABAC)** — per-membership/token boolean grants beyond role; `intersectEntitlements` constrains tokens.
-- **ReBAC engine** — schema-driven action resolution walking relations/self/conditions, with cycle detection.
-- **rebacSchema / ModelPermission** — per-model actions → `ActionRule`s.
-- **ActionRule** — algebra: string-inherit | `RelationCheck` | `SelfCheck` | `RuleCheck` | `any`/`all` | null.
-- **RelationCheck `{rel, action}`** — delegate to a related resource's action (single-hop or dot-path multi-hop).
-- **SelfCheck `{self: field}`** — grant when actor id == `record[field]`.
-- **RuleCheck `{rule}`** — json-rules `Condition` over the record (ABAC predicate).
-- **ResolveModel** — app seam mapping a relation field → model (via `prismaMap`); injected into the engine.
-- **ownerActions()** — spreadable action block fanning out across owner relations for owner-polymorphic models.
+- **Role (RBAC) + roleHierarchy** — `owner>admin>member>viewer`. <small>API · `lesserRole`/`greaterRole` · `rolesAtOrAbove` · `roleToStandardAction`</small>
+- **StandardAction** — `read|operate|manage|own`.
+- **Entitlements (ABAC)** — per-membership/token boolean grants beyond role. <small>API · `intersectEntitlements` (constrains tokens)</small>
+- **ReBAC engine** — schema-driven action resolution walking relations/self/conditions, with cycle detection. <small>API · `rebacSchema`/`ModelPermission` (per-model actions → `ActionRule`s) · `ResolveModel` (injected relation→model seam) · `ownerActions()` (fan out across owner relations)</small>
+- **ActionRule** — the algebra: string-inherit | `RelationCheck {rel, action}` (delegate to a related resource's action) | `SelfCheck {self}` (grant when actor id == `record[field]`) | `RuleCheck {rule}` (json-rules `Condition` over the record = ABAC) | `any`/`all` | null.
 - **Row-level overrides (`permissionRules`)** — per-row additive grants OR'd with the schema rule (sharing without schema change).
 - **Token permission restriction** — token can't exceed owner (`lesserRole` + entitlement intersection).
 
@@ -269,11 +250,10 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: sensitive fields must be encrypted at rest with rotation and tamper-detection, but adding a field shouldn't require touching hooks/rotation/validation — a registry makes it one-line, auto-discovered.*
 
-- **AES-256-GCM field encryption** — authenticated per-field encryption, random IV, auth tag.
-- **createEncryption / EncryptedFieldData** — `createEncryption(keyring)` → `{ encrypt, decrypt }`; `EncryptedFieldData` = `{ciphertext, version, iv, authTag}` (base64).
+- **AES-256-GCM field encryption** — authenticated per-field encryption, random IV, auth tag. <small>API · `createEncryption(keyring)` → `{ encrypt, decrypt }` · `EncryptedFieldData` = `{ciphertext, version, iv, authTag}` (base64)</small>
 - **AAD (buildAAD)** — bind ciphertext to immutable record fields; prevents transplant to another record.
 - **ENCRYPTED_MODELS registry** — single source of which fields encrypt; hooks/rotation/validation auto-discover.
-- **Column-triplet convention** — `encrypted{Field}` + `…Metadata` + `…KeyVersion`; `encryptField`/`decryptField` generics.
+- **Column-triplet convention** — `encrypted{Field}` + `…Metadata` + `…KeyVersion`. <small>API · `encryptField`/`decryptField` generics</small>
 - **EncryptionKeyring / key versions** — current + previous key for dual-key zero-downtime rotation.
 - **rotateEncryptionKeys (singleton job)** — idempotent re-encrypt via `updateManyAndReturn where version=N`.
 - **`validateEncryptionVersions`** — rejects key-version gaps/downgrades/mixed versions (the deploy-time guard; currently exercised in tests).
@@ -282,41 +262,33 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: business logic must never call email/SMS/analytics directly — it emits an event; bridges and background jobs do the side effects reliably, after commit, off the request path.*
 
-- **emitAppEvent** — fire a business event decoupled from side effects; auto-enriches actor.
-- **makeAppEvent** — define one event's fan-out across bridges (email/websocket/observe/cb) via `Promise.allSettled`.
-- **appEventHandlers** — centralized typed name→handler map; `onCommit` deferral inside txns.
-- **bridges** — email (`EmailHandoff` → sendEmail job), websocket (`WSEvent` refetch triggers), observe (→ `recordAppEvent`), raw callbacks.
-- **enqueueJob** — typed central job dispatch with overflow protection + dedupe.
-- **makeJob / makeSingletonJob / makeSupersedingJob** — basic / one-at-a-time (lock) / newest-cancels-older (lanes).
+- **emitAppEvent** — fire a business event decoupled from side effects; auto-enriches actor. <small>API · `makeAppEvent` (define one event's fan-out) · `appEventHandlers` (typed name→handler map; `onCommit` deferral in txns)</small>
+- **bridges** — email (`EmailHandoff` → sendEmail job), websocket (`WSEvent` refetch triggers), observe (→ `recordAppEvent`), raw callbacks — each independent via `Promise.allSettled`.
+- **enqueueJob** — typed central job dispatch with overflow protection + dedupe. <small>API · `makeJob` (basic) · `makeSingletonJob` (one-at-a-time, lock) · `makeSupersedingJob` (newest cancels older, lanes)</small>
 - **jobHandlers / ctx.log** — typed name→payload→handler registry; dual-write logging (stdout + BullBoard).
 - **Worker / BullMQ** — concurrency 10, retries, graceful shutdown; own Redis connection.
 - **BullBoard** — queue/job monitoring UI; receives worker logs via broadcast.
-- **Job overflow buffer (JobOutbox)** — adhoc jobs spill to DB rows past `maxQueueDepth`; `accumulator` batches the writes.
-- **drain loop** — re-admit buffered jobs FIFO as room frees, under a lock; `quarantine` poison rows after N attempts.
-- **overflow flag / queueDepth** — Redis set-once trip flag; cached `waiting+active` probe.
+- **Job overflow buffer (JobOutbox)** — adhoc jobs spill to DB rows past `maxQueueDepth`. <small>API · `accumulator` (batches the writes) · `drain` loop (re-admit FIFO under a lock) · `quarantine` (poison rows after N attempts) · overflow flag / `queueDepth` (set-once trip flag + cached waiting+active probe)</small>
 - **Cron jobs / JobType** — DB-defined schedules registered at startup; `cron|cronTrigger|adhoc`.
-- **messaging (messageUser/messageContact + messageProviderRegistry)** — non-email multi-channel dispatch via pluggable per-`ContactType` adapters.
+- **messaging** — non-email multi-channel dispatch. <small>API · `messageUser`/`messageContact` · `messageProviderRegistry` (pluggable per-`ContactType` adapters)</small>
 
 ### Concurrency
 
 *Why: a horizontally-scaled app needs cross-process mutual exclusion, supersession, serialization, and bounded parallelism — small primitives so batches don't exhaust pools or interleave.*
 
-- **createLock** — distributed Redis lock with heartbeat/TTL/`onLockLost`; single-node mutual exclusion. In `@template/db`.
-- **lanes (claimLane/watchLane)** — cross-process "last enqueue wins" baton for superseding jobs; own `lane:` Redis namespace. In `@template/db`.
-- **createSerializedQueue** — serialize concurrent async writes to one resource (in-process promise chain).
-- **getConcurrency / resolveAll** — parallelism caps per resource class; bounded `Promise.all`.
-- **heartbeat** — non-overlapping recurring async timer with clean `stop()`.
+- **Distributed lock** — single-node cross-process mutual exclusion (heartbeat/TTL, `onLockLost`). <small>API · `createLock` · `@template/db`</small>
+- **Supersede lane** — cross-process "last enqueue wins" baton for superseding jobs; own `lane:` Redis namespace. <small>API · `claimLane` · `watchLane` · `laneKey` · `@template/db`</small>
+- **Serialized writes** — serialize concurrent async writes to one resource (in-process promise chain). <small>API · `createSerializedQueue`</small>
+- **Bounded parallelism** — parallelism caps per resource class; bounded `Promise.all`. <small>API · `getConcurrency` · `resolveAll`</small>
+- **Recurring timer** — non-overlapping recurring async task with a clean `stop()` (the primitive under lock lease-renewal and lane usurp-polling). <small>API · `heartbeat`</small>
 
 ### Redis & caching
 
 *Why: caching is only safe if invalidation is automatic and keys never collide — a namespaced key scheme plus mutation-driven invalidation makes reads fast without staleness bugs.*
 
-- **Redis connection strategy** — main shared client + dedicated subscriber + BullMQ's own; `createRedisConnection`.
-- **redisNamespace** — central key-prefix map (bull/cache/job/ws/otp/session/limit/lock/lane).
-- **cacheKey / validateKey** — canonical `cache:{accessor}:{field}:{value}[:tags][:*]`; throws on `undefined`.
-- **cache (get-or-set)** — memoize reads with TTL + negative-caching (stampede protection).
-- **clearKey + automatic invalidation** — exact/wildcard delete; reverse-reference map clears the right keys on mutation.
-- **RedisMock / flushRedis** — in-memory Redis for deterministic tests.
+- **Redis connection strategy** — main shared client + dedicated subscriber + BullMQ's own. <small>API · `createRedisConnection` · `getRedisClient`/`getRedisSub`</small>
+- **redisNamespace** — central key-prefix map (`bull`/`cache`/`job`/`ws`/`otp`/`session`/`limit`/`lock`/`lane`).
+- **Cache** — get-or-set memoization with TTL + negative-caching (stampede protection); canonical `cache:{accessor}:{field}:{value}[:tags][:*]` keys; a reverse-reference map clears the right keys on mutation. <small>API · `cache` · `cacheKey`/`validateKey` (throws on `undefined`) · `clearKey` (exact/wildcard) · `RedisMock`/`flushRedis` (tests)</small>
 
 ### Realtime / websockets
 
@@ -325,8 +297,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **WebSocket server** — native Bun WS on the Hono port; anonymous at handshake, then token auth via an in-band `authenticate` message.
 - **Connection lifecycle / registry** — track by id/user/channel; identity via `authenticate`/`spoof`/`logout`.
 - **channelKey / WSEvent** — query identity key; data-free `{category:'query', action:'refetch', key}` contract.
-- **sendToChannel / sendToUser / broadcast** — publish to `ws:broadcast` Redis channel → fan out to all instances.
-- **initWebSocketPubSub** — each instance subscribes to `ws:broadcast` and routes to local delivery.
+- **Pub/sub fan-out** — publish to the `ws:broadcast` Redis channel → every instance delivers locally. <small>API · `sendToChannel` · `sendToUser` · `broadcast` · `initWebSocketPubSub`</small>
 - **LIVE_QUERIES** — operationIds with a BE producer; the FE subscribes only to these.
 - **createApiWebsocket / client pipe** — channel refcount, reconnect, send-queue; queryCache subscriber → auto subscribe/invalidate.
 - **WS heartbeat / stale sweep** — ping/pong liveness; close idle connections; FE force-reconnect.
@@ -336,10 +307,9 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: transactional email must be tenant-overridable, idempotent, consent-aware, and reconstructable — a DB-driven template system + a planner/deliver pipeline gives at-most-once sends you can audit.*
 
 - **EmailTemplate / EmailComponent** — tenant-overridable MJML templates + reusable blocks (`{{component:slug}}`).
-- **Render pipeline (compose/expand/interpolate)** — fetch + recursively expand components + substitute `{{sender/recipient/data.*}}`.
-- **evaluateConditions** — `{{#if rule=…}}` blocks driven by json-rules; a throwing rule drops the branch.
+- **Render pipeline** — fetch + recursively expand components + substitute `{{sender/recipient/data.*}}`. <small>API · `compose` · `expand` · `interpolate` · `evaluateConditions` (`{{#if rule=…}}` via json-rules; a throwing rule drops the branch)</small>
 - **Cascade resolution (lookupCascade)** — owner chain Space→Org→default (and user chain) picks the right-tier template.
-- **EmailOwnerModel / inheritToSpaces** — false-polymorphic ownership: default/admin/Org/Space/User/...
+- **EmailOwnerModel / inheritToSpaces** — false-polymorphic ownership: default/admin/Org/Space/User/…
 - **EmailErrorPolicy** — `fail` (retry→DLQ) / `degrade` (drop bad blocks) / `fallback` (re-render one owner up).
 - **sendEmail planner → deliverEmail** — two-stage fan-out: planner finds-or-creates one log per recipient, then one deliver job each.
 - **idempotencyKey** — event-anchored hash-last key collapses duplicate sends but re-sends on payload change.
@@ -354,24 +324,21 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: three apps share one state model and one API contract — a single composable store + generated SDK keep client state, tenancy, and server data coherent without per-app forks.*
 
-- **useAppStore** — one shared Zustand store composing 6 slices; consumed via `@template/ui/store` (all three apps).
-- **Slice composition (createXSlice)** — modular `StateCreator` slices spread into one store; `AppStore` = their intersection.
-- **AuthSlice / TenantSlice / PermissionsSlice / NavigationSlice / ClientSlice / UISlice** — identity / tenant context / FE ReBAC / nav config / QueryClient+WS / theme.
-- **user-context slices (superadmin)** — same store, user-context-first, no forced tenant switching.
-- **File-based routing (TanStack Router)** — `createFileRoute` under `app/routes/`; nesting via `<Outlet/>`.
-- **`__root` / layout routes** — `_authenticated` (guard+AppShell), `_public`, `_fullscreen`.
-- **Guards (requireAuth/requirePublic)** — redirect in `beforeLoad`, preserve `redirectTo`/context.
+- **useAppStore** — one shared Zustand store composing 6 slices; consumed via `@template/ui/store` (all three apps). <small>API · `create<X>Slice` composition → `AppStore` = their intersection</small>
+- **Store slices** — `AuthSlice` / `TenantSlice` / `PermissionsSlice` / `NavigationSlice` / `ClientSlice` / `UISlice` (identity / tenant context / FE ReBAC / nav config / QueryClient+WS / theme); superadmin swaps in user-context-first slices (no forced tenant switch).
+- **File-based routing (TanStack Router)** — `createFileRoute` under `app/routes/`; nesting via `<Outlet/>`; layout routes `_authenticated` (guard+AppShell) / `_public` / `_fullscreen`.
+- **Guards** — redirect in `beforeLoad`, preserve `redirectTo`/context. <small>API · `requireAuth` · `requirePublic`</small>
 - **useAuthenticatedRouting** — sync tenant context + spoof between URL and store; route permission check.
 - **Navigation config (`NavConfig`/`NavItem`)** — declarative, permission-filtered nav: context-keyed (`user`/`organization`/`space`/`public`) recursive `NavItem` trees.
 - **apiQuery / apiMutation** — typed SDK wrappers (unwrap `data.data` / keep full response); auth+spoof headers.
-- **Theme system (three-tier CSS vars)** — `--app-*` → `--space-*` → `--primary`; `useDarkMode`/`useSpaceTheme`.
+- **Theme system (three-tier CSS vars)** — `--app-*` → `--space-*` → `--primary`. <small>API · `useDarkMode` · `useSpaceTheme`</small>
 
 ### Frontend layout & UI
 
 *Why: a consistent app frame and a set of conditional-aware primitives let every page look and behave the same with minimal code — permission-filtered, theme-aware, responsive by default.*
 
 - **AppShell** — master authenticated layout: Sidebar (ContextSelector + nav + UserMenu) beside `<Outlet/>`.
-- **ContextSelector** — switch Personal/Org/Space (supports lockedContext for white-label).
+- **ContextSelector** — switch Personal/Org/Space (supports `lockedContext` for white-label).
 - **Sidebar / Header / UserMenu / Breadcrumbs** — permission-filtered nav / page header / account menu / location trail.
 - **MasterDetailLayout / DetailPanel / ResponsiveDrawer** — list+detail; slide-out detail; drawer-desktop/modal-mobile.
 - **Modal / FullscreenLayout / Toaster / ErrorBoundary** — overlay dialog / chrome-less protected page / toasts / render-error fallback.
@@ -384,13 +351,11 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: list UIs all need the same search/filter/sort/pagination/scroll behavior, derived from the API's own schema — so tables and filters stay in sync with the backend automatically.*
 
 - **usePaginatedData / useInfiniteData** — page-number / infinite-scroll controllers with URL + scroll persistence.
-- **makeDataConfig / useDataFilters / useQueryMetadata** — derive searchable/orderable/enum fields from the OpenAPI spec; shared filter state.
-- **buildFilterQuery / serializeBracketQuery** — serialize filter/sort state to bracket-notation query params.
-- **useInfiniteScrollTrigger / useScrollState / useSectionHash** — IntersectionObserver load-more; scroll restore; hash↔section deep-linking.
-- **useOptimisticMutation + createOptimisticListTarget** — optimistic cache updates with rollback; `createOptimisticListTarget` adapts it for list create/update/delete.
+- **Data config** — derive searchable/orderable/enum fields from the OpenAPI spec; shared filter state. <small>API · `makeDataConfig` · `useDataFilters` · `useQueryMetadata` · `buildFilterQuery`/`serializeBracketQuery` (serialize to bracket-notation)</small>
+- **Scroll/section hooks** — `useInfiniteScrollTrigger` (IntersectionObserver load-more) · `useScrollState` (restore) · `useSectionHash` (hash↔section deep-linking).
+- **useOptimisticMutation** — optimistic cache updates with rollback. <small>API · `createOptimisticListTarget` (list create/update/delete)</small>
 - **usePermission / useInquiryPermission** — turn a permission check into `{show, disable, disabledText}`.
-- **useAuthProviders / useValidateUniqueness / useDebounce / useMediaQuery** — provider fetch / live availability / debounce / breakpoint.
-- **usePageMeta / useBreadcrumbs / useLanguage** — document title+meta / crumb trail / locale.
+- **Utility hooks** — `useAuthProviders` · `useValidateUniqueness` · `useDebounce` · `useMediaQuery` · `usePageMeta` · `useBreadcrumbs` · `useLanguage`.
 - **makeContextQueries** — per-feature, context-scoped (public/user/org/space) query+mutation registries.
 
 ### Features (domain)
@@ -399,10 +364,10 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 - **organization / space** — top-level tenant; org-scoped sub-workspace with branding.
 - **organizationUser / spaceUser** — membership joins with `Role` + entitlements; space membership requires org membership.
-- **users (user) / me** — platform identity; self-service `/me` surface (profile, contacts, tokens, webhooks, redact).
+- **user / me** — platform identity; self-service `/me` surface (profile, contacts, tokens, webhooks, redact).
 - **redact (GDPR)** — anonymize user PII while preserving referential integrity.
 - **inquiry** — generic request/approval/audit primitive; polymorphic source/target, per-type handler, status state machine.
-- **InquiryType / handler** — `inviteOrganizationUser/createSpace/updateSpace/transferSpace`; handler = content+resolution schemas + `handleApprove`/`autoApprove`/`unique`/expiry.
+- **InquiryType / handler** — `inviteOrganizationUser`/`createSpace`/`updateSpace`/`transferSpace`; a handler = content+resolution schemas + `handleApprove`/`autoApprove`/`unique`/expiry.
 - **contact + ContactType (~22)** — one polymorphic-owner model for phone/email/social handles; per-type registry def; deliverability + `acceptedKinds`.
 - **customerRef** — false-polymorphic customer (User/Org/Space) ↔ provider (Space) link.
 - **webhookSubscription / webhookEvent** — owner-polymorphic outbound subscriptions; per-attempt delivery ledger (RSA-signed).
@@ -418,24 +383,20 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: confidence comes from data factories that mirror reality and gates that block drift — so tests are fast to write, isolated, and the repo's bespoke conventions are enforced mechanically.*
 
-- **Test factories (`build*`/`create*`)** — in-memory (`build*`) vs persisted (`create*`) records; auto-infer FK deps; `createFactory(model, config)`; `getNextSeq()` for unique values (`packages/db/src/test/factories`).
+- **Test factories (`build*`/`create*`)** — in-memory (`build*`) vs persisted (`create*`) records; auto-infer FK deps. <small>API · `createFactory(model, config)` · `getNextSeq()` (unique values) · `packages/db/src/test/factories`</small>
 - **`__serialize()`** — convert `Date`→ISO to assert against API/SDK string-timestamp shapes (CI-enforced in UI tests).
 - **createTestApp** — Hono app with mocked auth/tenancy; auto superadmin bypass.
-- **request helpers (get/post/.../json)** — concise HTTP calls + `{data, pagination}` parsing.
+- **request helpers** — concise HTTP calls + `{data, pagination}` parsing (`get`/`post`/…/`json`).
 - **cleanupTouchedTables / `--max-concurrency=1`** — DB test isolation; serial test runs.
 - **happy-dom** — browser-less DOM testing via `bunfig.toml` preload.
-- **CI rule runner (`run-ci-rules.sh`)** — repo-specific rules beyond Biome; `--test` self-tests against pass/fail fixtures.
-- **CI rules** — `no-jest`, `no-vitest`, `no-radix`, `no-lens-spread`, `no-module-mocks`, `ui-serialized-factories`, `spy-must-restore`, … (protected paths).
+- **CI rules** — repo-specific rules beyond Biome. <small>API · `run-ci-rules.sh` (`--test` self-tests against fixtures) · `no-jest`/`no-vitest`/`no-radix`/`no-lens-spread`/`no-module-mocks`/`ui-serialized-factories`/`spy-must-restore` · `check-import-aliases.sh` + stale-generated-file checks</small>
 - **`bun run check`** — canonical gate: lint + typecheck + backend tests + FE tests + CI rules.
-- **post-Biome checks** — import-alias (`check-import-aliases.sh`) + stale-generated-file checks.
 
 ### Observability & ops
 
 *Why: in production you need to trace one request/job across every log line and catch errors without coupling app code to a vendor — scoped structured logging + optional otel/sentry.*
 
-- **logger** — structured logging over a swappable adapter (pino deployed / consola local); server-only.
-- **LogScope / logScope() / scope ids** — nesting context tags; request/job correlation (`requestId`).
-- **addLogBroadcast** — pipe scoped logs to extra sinks (e.g. BullBoard).
+- **logger** — structured logging over a swappable adapter (pino deployed / consola local); server-only. <small>API · `LogScope`/`logScope()` (nesting tags, request/job `requestId`) · `addLogBroadcast` (extra sinks, e.g. BullBoard)</small>
 - **frontendLogger** — browser-safe logger, never crosses with the server logger.
 - **OpenTelemetry / Sentry** — optional tracing + error tracking, env-gated, skipped local/test.
 
@@ -443,7 +404,6 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: a large codebase is unnavigable by folders alone — atlas lets you find code by concept/role/dependency and enforces that the map stays true.*
 
-- **atlas** — navigate by concept not folders: `@atlas` annotations + `.atlas/` registry + generated `MAP.md`.
+- **atlas** — navigate by concept not folders: `@atlas` annotations + `.atlas/` registry + generated `MAP.md`. <small>CLI · `graph` (reverse indexes) · `query` (by kind/partOf/json-rules) · `stamp` (fill derivable axes) · `check`/`coverage` (CI)</small>
 - **`@atlas` block** — per-file `@kind` (role) / `@partOf` (concepts) / `@uses` (load-bearing deps) / `@constructs`.
 - **`.atlas/` config** — `config.ts` (stamp/include rules), `kinds.ts` (role vocab), `concepts.ts` (concept registry).
-- **atlas commands** — `graph` (reverse indexes), `query` (by kind/partOf/json-rules), `stamp` (fill derivable axes), `check`/`coverage` (CI).
