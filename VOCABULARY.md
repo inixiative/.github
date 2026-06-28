@@ -219,7 +219,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **getResource / resourceContextMiddleware** — auto-load the `:id` resource (404 on 0, 409 on >1) before authorization.
 - **scopeNarrowing** — merge per-request tenant/ownership `where` scope into the filter lens.
 - **Database scope (AsyncLocalStorage)** — request/job correlation id; `getScopeId`/`isInTxn`.
-- **bracketQuery** — parse bracket-notation query strings into nested objects.
+- **`parseBracketNotation` / `bracketQuery`** — `parseBracketNotation` turns bracket-notation query strings into a nested `BracketQueryRecord`; the parsed result rides the request as the `bracketQuery` context var (symbol/operator vocab in `@template/shared/bracketQuery`).
 - **getValidatedBody / getValidatedQuery** — typed validated input outside route-typed context.
 
 ### Adapters
