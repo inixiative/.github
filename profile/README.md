@@ -18,6 +18,8 @@ Two things are built here at once, on purpose: the **cooperation platform**, and
 
 The core bet: a serializable predicate language and a composable, enforceable model of authority over data. Everything else is a consumer of it.
 
+**→ [Full vocabulary](https://www.inixiative.com/vocabulary.html)** — every primitive across the ecosystem and the template, with what it solves and how it works. ([source](https://github.com/inixiative/.github/blob/main/VOCABULARY.md))
+
 ### json-rules
 
 One serializable `Condition` AST, three backends: evaluate in memory (`check`), compile to a Prisma query (`toPrisma`), or to a PostgreSQL `WHERE` (`toSql`). 38 operators across scalars, dates, windowing, arrays, and multi-source graphs.
