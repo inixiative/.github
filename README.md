@@ -12,6 +12,11 @@ We're building a cooperation platform — identity, governance, and investment i
 
 - **[template](https://github.com/inixiative/template)** *(in progress)* — Reusable SaaS monorepo foundation. Bun, Hono, Prisma 7, React/TanStack, BullMQ, Redis — auth, permissions, jobs, and multi-tenant patterns out of the box.
 - **[json-rules](https://github.com/inixiative/json-rules)** — Type-safe rules engine with 38 operators. Declarative business logic for permissions, pricing, eligibility, and form visibility.
+- **[prisma-map](https://github.com/inixiative/prisma-map)** — Model map extracted from a Prisma client: fields, relations, FK info. The schema reflection the rules engine reasons over; supports Prisma v6 and v7.
+- **[permissions](https://github.com/inixiative/permissions)** — Relationship-based access control as json-rules predicates. Relationship-walking checks, per-row grants, and an app-injected resolver so the engine stays generic.
+- **[transitions](https://github.com/inixiative/transitions)** — State machines whose guards and affordances are json-rules predicates, so workflow rules and permission rules speak one language.
+- **[rules-builder](https://github.com/inixiative/rules-builder)** — Visual rule builder for json-rules. Headless core with a bring-your-own-components contract; drag-and-drop condition authoring, no JSON by hand.
+- **[atlas](https://github.com/inixiative/atlas)** — A concept map of your codebase: `@atlas` annotations plus a queryable graph, so humans and agents navigate by concept instead of crawling folders.
 - **[hivemind](https://github.com/inixiative/hivemind)** — Multi-agent coordination library. Message bus with role-scoped channels for AI-powered workflows.
 - **[foundry](https://github.com/inixiative/foundry)** *(in progress)* — Context-layered agent orchestration harness. Primitives for sessions, middleware, tracing, and multi-provider LLM integration on Bun.
 - **[whitepaper](https://github.com/inixiative/whitepaper)** *(in progress)* — Adaptive governance infrastructure for cooperative societies.
@@ -20,7 +25,6 @@ We're building a cooperation platform — identity, governance, and investment i
 ### Coming Soon
 
 - **foundry-oracle** — Corpus optimization engine. Automated recursion loop that captures agent interactions, generates test fixtures, and improves AI context through multi-agent evaluation.
-- **rules-builder** — Visual rule builder UI for json-rules. Drag-and-drop condition authoring.
 - **inixiative platform** — Identity, permissions, escrow, and governance. The shared infrastructure layer for cooperation at scale.
 
 ### Stack
