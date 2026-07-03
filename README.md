@@ -15,6 +15,7 @@ We're building a cooperation platform — identity, governance, and investment i
 - **[hivemind](https://github.com/inixiative/hivemind)** — Multi-agent coordination library. Message bus with role-scoped channels for AI-powered workflows.
 - **[foundry](https://github.com/inixiative/foundry)** *(in progress)* — Context-layered agent orchestration harness. Primitives for sessions, middleware, tracing, and multi-provider LLM integration on Bun.
 - **[whitepaper](https://github.com/inixiative/whitepaper)** *(in progress)* — Adaptive governance infrastructure for cooperative societies.
+- **[config](https://github.com/inixiative/config)** — Shared toolchain for the ecosystem. Blessed TypeScript/Biome/Bun versions, tsconfig/biome/tsup presets, and a CLI that keeps every repo in sync and cascades releases downstream.
 
 ### Coming Soon
 

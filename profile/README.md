@@ -120,6 +120,16 @@ Multi-agent coordination: a message bus with role-scoped channels, so fleets of 
 
 ---
 
+## The toolchain
+
+### config
+
+One blessed toolchain for every repo above: TypeScript/Biome/Bun versions, shared tsconfig/biome/tsup presets, and a version manifest naming the coherent set of ecosystem packages. The `inixiative-config` CLI enforces it — `check` gates CI, `sync` heals drift, `scan` sweeps every checkout, `train` cascades a release through the dependency graph.
+
+[GitHub](https://github.com/inixiative/config) · [npm](https://www.npmjs.com/package/@inixiative/config)
+
+---
+
 ## Stack
 
 `Bun` · `Hono` · `PostgreSQL` · `Prisma 7` · `React` · `TanStack` · `Tailwind v4` · `Redis` · `BullMQ`
