@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" width="280" height="80">
+  <rect width="280" height="80" fill="#FFFFFF"/>
+  <text x="140" y="54" font-family="'DejaVu Sans Mono', 'JetBrains Mono', monospace" font-size="42" text-anchor="middle">
+    <tspan fill="#8B949E">&lt;</tspan><tspan fill="#0969DA" font-weight="700">iXi</tspan><tspan fill="#8B949E">&gt;</tspan>
+  </text>
+</svg>

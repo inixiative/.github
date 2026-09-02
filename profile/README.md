@@ -54,7 +54,7 @@ The visual editor for everything above: compose conditions against a lens surfac
 
 ### conditional-form
 
-Dynamic forms whose show/hide and validation logic *is* the same predicate language. Forms that reason exactly like the backend does — define the rule once and it governs both the UI and the submission.
+⏸ *Paused — not actively maintained, not recommended for use (may be revived).* Dynamic forms whose show/hide and validation logic *is* the same predicate language. Forms that reason exactly like the backend does — define the rule once and it governs both the UI and the submission.
 
 [GitHub](https://github.com/inixiative/conditional-form) · [npm](https://www.npmjs.com/package/@inixiative/conditional-form)
 
@@ -100,11 +100,23 @@ Corpus optimization: mines your merged PRs into evaluation fixtures, scores your
 
 [GitHub](https://github.com/inixiative/foundry-oracle) · [Waitlist](https://foundry-marketing.vercel.app/oracle)
 
+### agent-session
+
+Drive coding-agent CLIs as **persistent, streaming, event-captured sessions** — one interface, any agent. Most ways to script an agent are one-shot (`claude -p "…"`) and throw the process away; agent-session keeps a single long-lived process, streams turns, and captures every event. Claude Code and Codex today; Gemini and Grok planned. Powers foundry and bench.
+
+[GitHub](https://github.com/inixiative/agent-session)
+
 ### atlas
 
 A concept map of your codebase: lightweight `@atlas` annotations plus a queryable graph (`atlas graph` / `atlas query`), so humans and agents navigate by *concept* — feature, primitive, infrastructure — instead of crawling folders.
 
 [GitHub](https://github.com/inixiative/atlas) · [npm](https://www.npmjs.com/package/@inixiative/atlas)
+
+### gloss
+
+Decluttering as infrastructure: comments interrupt code, so gloss keeps source files comment-free and moves explanation into a mirrored sidecar tree — `src/foo.ts` → `.gloss/src/foo.ts.md`. You read the source; you read the margin only if you're confused.
+
+[GitHub](https://github.com/inixiative/gloss)
 
 ### bench
 
@@ -114,7 +126,7 @@ An agentic-engineering benchmark with two tracks — build-from-scratch and work
 
 ### hivemind
 
-Multi-agent coordination: a message bus with role-scoped channels, so fleets of agents collaborate on a workflow without stepping on each other.
+⏸ *Paused — not actively maintained, not recommended for use (likely to be revived).* Multi-agent coordination: a message bus with role-scoped channels, so fleets of agents collaborate on a workflow without stepping on each other.
 
 [GitHub](https://github.com/inixiative/hivemind) · [npm](https://www.npmjs.com/package/@inixiative/hivemind)
 
