@@ -104,8 +104,9 @@ A `LensNarrowing` node carries `picks`/`omits` (field visibility), `enumPicks`/`
 <small>API · `checkTransition` — guard a proposed move · `available` — list the legal actions for a record · `eligible` (via `toPrisma`) — every record currently eligible for an action.</small>
 
 #### @inixiative/permissions
-**Solves:** rebac/abac/rbac in one ORM-agnostic core.
-**How:** an `ActionRule` is a `RuleCheck` (a `Condition` over the record = **ABAC**), a `RelationCheck` (walk a relation, then check = **ReBAC**), or a `SelfCheck` (record field == actor id). A permix wrapper + relationship-walking engine, ORM-agnostic via an injected `ResolveModel`.
+**Solves:** who may do what, decided on your own records: roles, relations and conditions in one engine, with delegation that never outlives whoever granted it, and no second store to sync.
+**How:** a schema maps each resource's actions to an `ActionRule`, all plain JSON. A **permix** holds what a principal holds, its **permissions**: role grants plus **entitlements**, each backed by its grantor and asked again at every use. `check` decides on a loaded record. The **core** (about a thousand lines) never imports the **helpers** (delegation, hydration). 1.0, by the end of 2026, adds **reflection**: the same rules compiled to Prisma and SQL, so "which records can I read" and "who can read this" are one query each.
+<small>API · `createRebacCheck` · `createPermissions` · `createCanGrantEntitlement` — may this writer hand that entitlement on · `validateActionRule` — check a stored rule before saving · helpers: `delegate` / `capAtRole` / `installPermissions` / `permixOf` / `createHydrator`</small>
 
 #### @inixiative/prisma-map
 **Solves:** the schema reflection the lens reasons over — an ORM-agnostic runtime model map.
@@ -117,7 +118,7 @@ A `LensNarrowing` node carries `picks`/`omits` (field visibility), `enumPicks`/`
 
 ### The one-line version
 
-`Condition` is the atom; `FieldMap` is the shape; a **lens** scopes the shape; **sources** turn data into options; `checkRuleAgainstLens` enforces; `toPrisma`/`toSql` push to the store; **builders** edit it headlessly; **transitions** and **permissions** compose it — never re-solving it.
+`Condition` is the atom; `FieldMap` is the shape; a **lens** scopes the shape; **sources** turn data into options; `checkRuleAgainstLens` enforces; `toPrisma`/`toSql` push to the store; **builders** edit it headlessly; **transitions** and **permissions** compose it — never re-solving it; permissions 1.0 reflects its rules to the store the same way.
 
 ---
 
@@ -234,17 +235,18 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 ### Authorization (RBAC / ABAC / ReBAC)
 
-*Why: real permissions are roles AND attributes AND relationships at once — one engine expresses all three declaratively, so access rules are data, not scattered `if` checks.*
+*Why: real permissions are roles AND attributes AND relationships at once. One engine expresses all three as data, so access rules are rows a tenant can own, not scattered `if` checks or a policy file shipped on deploy.*
 
-- **Permix** — per-request permission checker. <small>API · `createPermissions()` · `check` · `setup` · `setSuperadmin`</small>
-- **PlatformRole / superadmin bypass** — `user|superadmin`; superadmin short-circuits `check()` to true (with audit).
-- **Role (RBAC) + roleHierarchy** — `owner>admin>member>viewer`. <small>API · `lesserRole`/`greaterRole` · `rolesAtOrAbove` · `roleToStandardAction`</small>
-- **StandardAction** — `read|operate|manage|own`.
-- **Entitlements (ABAC)** — per-membership/token boolean grants beyond role. <small>API · `intersectEntitlements` (constrains tokens)</small>
-- **ReBAC engine** — schema-driven action resolution walking relations/self/conditions, with cycle detection. <small>API · `rebacSchema`/`ModelPermission` (per-model actions → `ActionRule`s) · `ResolveModel` (injected relation→model seam) · `ownerActions()` (fan out across owner relations)</small>
-- **ActionRule** — the algebra: string-inherit | `RelationCheck {rel, action}` (delegate to a related resource's action) | `SelfCheck {self}` (grant when actor id == `record[field]`) | `RuleCheck {rule}` (json-rules `Condition` over the record = ABAC) | `any`/`all` | null.
-- **Row-level overrides (`permissionRules`)** — per-row additive grants OR'd with the schema rule (sharing without schema change).
-- **Token permission restriction** — token can't exceed owner (`lesserRole` + entitlement intersection).
+- **ActionRule** — the algebra: a string (another action on the same resource) | `{ rel, action }` (walk a relation, ask the related record) | `{ rule }` (a json-rules condition over the record and `__actor`) | `any` / `all` | `true` / `false` / `null`. Positive only: you narrow by composing, there is no deny.
+- **rebacSchema** — the template's actions per model. <small>API · `ownerActions()` (across owner relations) · `memberRowActions` (member rows) · routes declare checks via `validatePermission` / `validateSubmodelPermission`</small>
+- **Role + StandardAction** — `owner > admin > member > viewer`, mapping to `own > manage > operate > read`. <small>API · `roleToStandardAction`</small>
+- **PlatformRole / superadmin bypass** — `user | superadmin`; superadmin short-circuits every check.
+- **Permix** — a principal's installed permissions for one request. <small>API · `createPermissions()` · `setup` · `setActor` · `setSuperadmin` · `installPermissionsFor`</small>
+- **Permissions** — what a principal holds: role grants plus entitlements, and for a delegate, `full`. <small>API · `permissionsOfUser` · `ownerPermissions` · `delegatedPermissions`</small>
+- **Entitlement** — an action on a resource, from an anchor record, narrowed by an optional `where`, backed by whoever granted it. Every check asks the grantor again, up the chain; demote anyone and what they handed on stops. <small>API · `changeEntitlements` (add / remove) · the library's grant check decides who may hand one on</small>
+- **Delegate** — a token or integration acting for its owner: `full` (the owner whole, in sync), a role (the owner capped at that role, `capAtRole`) or entitlements. Never more than its owner. Setting `full` takes the person-only `delegateFull` action.
+- **Member self-grant** — every member row's entitlement to `operate` on itself, backed by its user; written on create and kept by a rule.
+- **Row-level rules (`permissionRules`)** — a rule a tenant writes on one record (`Contact` for `read` today), validated before saving and ORed with the schema, so it can only widen access. Ad hoc sharing without a schema change.
 
 ### Encryption
 
