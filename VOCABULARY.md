@@ -30,8 +30,8 @@ rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check /
 
 #### Operators
 **Solves:** a closed, introspectable catalog of what comparisons exist and what input each needs — so a UI renders the right control and every target honors the same set.
-**How:** `Operator` · `ArrayOperator` · `DateOperator` enums, each carrying a `ValueShape` (`scalar | range | array | dateWindow | predicate | none`).
-<small>API · `getValueShape(op)` — the input shape a control should render.</small>
+**How:** `Operator` · `ArrayOperator` · `DateOperator` const catalogs; each operator carries the targets it compiles to and a `ValueShape` (`none | scalar | ordered | array | string | pattern | range | dateValue | dateRange | dateWindow | dayList | count | predicate`).
+<small>API · `getValueShape(op, family)` — the input shape a control should render · `getOperatorsForKind` — the operators a field kind takes, narrowed to one target when given.</small>
 
 #### RuleTarget
 **Solves:** "where will this rule run?" — so a rule can be restricted to operators all chosen targets support.
@@ -41,12 +41,12 @@ rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check /
 
 #### FieldMap
 **Solves:** describe data (models, fields, kinds, relations, allowed values) without coupling to any ORM.
-**How:** `{ models: { Model: { fields: { name: FieldMapEntry } } }, enums? }`. A `FieldMapEntry` has `kind` (`scalar | object | enum | bridge`), `type`, optional `isList`, `fromFields`/`toFields` (FK columns), and `values` — an optional `readonly string[]` that solves "constrained value set" once (enums, picklists, and hydrated sources all route through it; `checkRuleAgainstLens` gates against it regardless of kind, so no enum-promotion hack).
+**How:** `{ models: { Model: { fields: { name: FieldMapEntry } } }, enums? }`. A `FieldMapEntry` has `kind` (`scalar | object | enum | bridge`), `type`, optional `isList`, `fromFields`/`toFields` (FK columns), and `values` — an optional `readonly string[]` that solves "constrained value set" once (enums and picklists route through it; `validateRuleInLens` gates against it regardless of kind, so no enum-promotion hack). Projection output adds `options` (`{ value, label?, groups? }`) on every value-gated or sourced field.
 
 #### Bridge
 **Solves:** navigable relations *across* separate field maps (e.g. Prisma + Salesforce + CRM) without merging them.
-**How:** a `Bridge` declares two endpoints (`fieldMap:model.on`) and a cardinality.
-<small>API · `stitchFieldMaps` — inject a navigable `map:model` field on each side · `buildBridgeDictionary` — materialize the cross-map links.</small>
+**How:** a `Bridge` declares two endpoints (`{ fieldMap, model, on }`) and a cardinality (`oneToOne | oneToMany`). Rules read across it by the bridge key (`salesforce:Contact.industry`); `check` walks plain properties, so the caller embeds the foreign row under that key.
+<small>API · `stitchFieldMaps` — inject a navigable `kind: 'bridge'` field on each endpoint model · `indexBridges(set, rawData)` — index foreign rows by their `on` key into a `BridgeDictionary`, ready to embed under bridge keys.</small>
 
 ### 3 · Lens — one schema, many scoped views
 
@@ -56,51 +56,51 @@ rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check /
 
 | Form | What | Used for |
 |---|---|---|
-| **Reference** | `Lens` + a serializable `LensNarrowing` chain | author, store, ship |
-| **Full** | `resolveVisit` → a `VisitEffect` per node | the computed view, narrowing applied |
-| **Public** | `exposedSurface` (per model) · `projectByPath` (per path) | the leak-safe surface a UI/consumer sees |
+| **Reference** | `Lens` + a serializable `LensNarrowing` chain, stored one `StoredLens` record per layer | author, store, ship |
+| **Visit** | `lensVisit` — one visit resolved on demand (shown fields with values and options, sources, labels) | the computed view, narrowing applied |
+| **Public** | `projectLens` (per path, or `{ by: 'model' }` for a flattened lens) | the leak-safe surface a UI/consumer sees |
 
-A `LensNarrowing` node carries `picks`/`omits` (field visibility), `enumPicks`/`enumOmits` (value sets), `where` (a row-filter `Condition`), `sources` (data-backed options), and `relations` (recursive). Composes filter-first, AND-only.
-<small>API · `createLens` — anchor at a model in a map · `resolvePolicy`/`resolveVisit` — compute the `VisitEffect` (visible fields, `enumValuesByField`, composed `where`, `sources`) · `exposedSurface(lens,{sourceValues})` / `projectByPath(lens,{sourceValues})` — project the public surface, folding narrowed + fetched `values` onto `field.values` · `validateNarrowing` — reject a chain that widens or names missing fields.</small>
+A `LensNarrowing` layer has a `root` (path-specific, from the anchor) and `mapDefaults` (wherever a model appears). Each node carries `picks`/`omits` (columns), `enumPicks`/`enumOmits` (value sets), `where` (a row-filter `Condition`), `sources` (data-backed options), and `relations` (recursive). Relations are off until the first narrowing turns them on; later layers only narrow. Composes filter-first, AND-only.
+<small>API · `createLens` — anchor at a model in a map (stitches bridges) · `validateNarrowing` — reject a chain that widens or names missing fields · `projectLens(lens,{sourceValues})` — project the public surface, attaching fetched options to each field as `options` · `lensVisit` / `walkLensPath` / `readLensValue` — one visit, one path, one value off a row, as the lens shows it · `clampLens` — AND clamps into the first layer · `bindLens` / `listLensBindings` — fill a narrowing's `bind` tokens per request · `storeLens` / `composeLens` — store a chain one record per layer and compose it back · `toLensSelect` / `projectRows` — fetch the rows a lens shows and cut them to it · `getLensRoot` — the base lens of a chain.</small>
 
 ### 4 · Sources — a column's contents as an option set
 
 #### sources
 **Solves:** turn the live values of a column into a field's selectable options (a "pseudo-enum"), scoped by the lens — *engine compiles the query, app executes it*.
-**How:** `sources: { field: Condition }` on a model in the narrowing — a per-field eligibility `where` that composes like `where` (AND-only). The app runs the compiled DISTINCT query and ships back `SourceValues = { path, mapName, model, field, values }`, which fold onto `field.values` inside the projection (§3). Wire format: `{ lens, sourceValues }` — both serializable.
-<small>API · `sourceQueries(lens)` — a `SELECT DISTINCT field WHERE <narrowing ∧ source>` per `(path, field)`, emitted as both Prisma and SQL (SQL degrades gracefully on array predicates).</small>
+**How:** `sources: { field: Condition | SourceSpec }` on a narrowing node — a bare eligibility `where`, or `{ where?, label?, groupBy? }`, or `{ from: 'mapDefaults' }` to offer the model's own source. The `where` composes like `where` (AND-only). The app runs the compiled DISTINCT query and gets back `SourceValues = { path, mapName, model, field, options }`, which `projectLens(lens, { sourceValues })` attaches to each field as `options` (§3). Wire format: `{ lens, sourceValues }` — both serializable.
+<small>API · `toSourceQueries(lens)` — one `SELECT DISTINCT` per sourced field, emitted as both Prisma and SQL (`sql` is `null` with an `error` where SQL can't express the where; a source read across a bridge over-fetches and carries a `recheck`) · `materializeSourceQuery(query, rows)` — one query's fetched rows as `SourceValues` · `materializeSources(lens, rows)` — every source from rows already fetched under the lens.</small>
 
 ### 5 · Enforcing & describing rules against a lens
 
 #### Lens enforcement
 **Solves:** make a lens actually constrain rules — is this rule expressible and allowed here, what does it touch, and carry the lens's row-filters into it.
 **How:** static analysis + injection over a rule against the projected lens.
-<small>API · `checkRuleAgainstLens(rule, lens)` — author-time gate (flags hidden fields + out-of-set values) → `{ ok, violations }` · `describeRule(rule, lens)` — classify (maps touched, bridge-crossing, supported targets) · `applyLens(rule, lens)` — AND the narrowing's `where` into the rule (through array conditions too).</small>
+<small>API · `validateRuleInLens(rule, lens)` — author-time gate (hidden fields, relations the lens doesn't turn on, out-of-set values) → `{ ok, errors }` · `describeRule(rule, lens)` — classify (maps read, bridge-crossing, supported targets) · `describeRuleSources(rule, lens)` — the source values a rule names · `narrowRule(rule, lens)` — AND the narrowing's `where`s into the rule at their anchors (into the window `filter` under `all`) · `coerceRule(rule, lens)` — stamp each field rule's `coerceType` from the lens · passing `lens` to `toPrisma` / `toSql` gates, narrows and compiles in one call.</small>
 
 ### 6 · Compile targets — push the predicate to the store
 
 #### Compile targets
 **Solves:** run a `Condition` where the data lives — a prefilter, or the full filter where expressible.
 **How:** the same AST, two compilers.
-<small>API · `toPrisma(condition,{map,mapName,model})` → a Prisma `where` (+ `groupBy` for count operators) · `toSql(condition,{map,model,alias})` → `{ sql, params, joins }` (degrades gracefully on array-condition predicates — fall back to `check`).</small>
+<small>API · `toPrisma(condition,{map,mapName,model} or {lens})` → a plan `{ steps }` (with `groupBy` steps for count and aggregate operators) that `executePrismaPlan` resolves to a Prisma `where` · `toSql(condition,{map,model,alias} or {lens})` → `{ sql, params, joins }` (array predicates with conditions throw — run them through `toPrisma` or `check`) · `toWhereSql` / `toLensWhereSql` — a condition, or a lens's row filters, as an inline SQL predicate in the engine's `sql.dialect`.</small>
 
 ### 7 · Builders — headless UI on the lens (`@inixiative/rules-builder`)
 
 #### Rule builder
 **Solves:** build/edit a `Condition` **headlessly** — logic in, descriptors out, you render.
-**How:** a hook owns the JSON value and emits a recursive `GroupNode`/`LeafNode` descriptor tree; each node states *what controls exist* (field/operator/value, each `{ value, options, set }`) plus bound actions (`addRule`, `remove`, …). Renders nothing — wire your own components (a copy-paste reference renderer + shadcn drop-in are provided).
-<small>API · `resolve(source,{sourceValues})` — assemble the public surface in one call · `useRuleBuilder(...)` → `{ value, root }` descriptor tree · `describeModelFields(lens, map, model)` → per-field `BuilderField` (operators by target, value shape, `enumValues`).</small>
+**How:** a hook owns the JSON value and emits a recursive `GroupNode`/`LeafNode`/`ArrayNode` descriptor tree; each node states *what controls exist* (field/operator/value, each `{ value, options, set }`, with per-control `valid`) plus bound actions (`addRule`, `remove`, …). Renders nothing — wire your own components (two copy-paste reference renderers, plain and shadcn, are provided).
+<small>API · `resolve(source,{sourceValues})` — the narrowed lens as a `LensView`, each visit resolved on demand · `useRuleBuilder(...)` → `{ value, root }` descriptor tree · `describeModelFields(lens, mapName, model)` → per-field `BuilderField` (operators per family, `options`/`enumValues`).</small>
 
 #### lensValuePicker
 **Solves:** "pick any value reachable through a lens" — the shared atom behind a rule's `field` (LHS) and `path` (RHS reference), reused downstream (permissions, email).
-**How:** enumerates leaf values across relations as dotted paths, with kind and allowed values. A `Json` column is flagged `acceptsSubPath` (it has no declared sub-fields, but the kernel resolves *and* validates a dotted JSON path — `check`/`toPrisma`/`toSql` + `checkRuleAgainstLens`), so a renderer can offer freeform descent — `metadata` → `metadata.theme`.
+**How:** enumerates leaf values across relations as dotted paths, with kind and allowed values. A `Json` column is flagged `acceptsSubPath` (it has no declared sub-fields, but the kernel resolves *and* validates a dotted JSON path — `check`/`toPrisma`/`toSql` + `validateRuleInLens`), so a renderer can offer freeform descent — `metadata` → `metadata.theme`.
 <small>API · `lensValuePicker(lens,{maxDepth})` · `useLensValuePicker` · `LensValueOption.acceptsSubPath` (JSON freeform sub-path).</small>
 
 ### 8 · Downstream layers
 
 #### @inixiative/transitions
 **Solves:** declarative, serializable state-machine **guards + affordances** — "can this record move from A→B, and who may?"
-**How:** a `TransitionMap` (model → action → `from`/`to`, guard `ActionRule`, optional `Merge`), evaluated through an injected `Authorize` seam. Reuses `Condition`/`check` for the predicate — it doesn't re-solve reasoning.
+**How:** a `TransitionMap` (resource → action → `Action`, the OR of its `from`/`to` edges); each side holds a `predicate` `Condition` and an optional `permission` `ActionRule`, and the `to` side an optional `Merge`. `from` is checked against the current record, `to` against the merged one. Permissions go through an injected `Authorize` seam (`createAuthorize` adapts the permissions library). Reuses `Condition`/`check` for the predicate — it doesn't re-solve reasoning.
 <small>API · `checkTransition` — guard a proposed move · `available` — list the legal actions for a record · `eligible` (via `toPrisma`) — every record currently eligible for an action.</small>
 
 #### @inixiative/permissions
@@ -114,11 +114,11 @@ A `LensNarrowing` node carries `picks`/`omits` (field visibility), `enumPicks`/`
 
 #### atlas
 **Solves:** navigate the codebase by **concept**, not folders.
-**How:** `@atlas` annotations + a concept graph + `MAP.md`; query by `kind` / `partOf` / `uses`.
+**How:** `@atlas` annotations + a concept graph + `MAP.md`; query by `kind` / `partOf` / `uses` / `path`, or a json-rules predicate.
 
 ### The one-line version
 
-`Condition` is the atom; `FieldMap` is the shape; a **lens** scopes the shape; **sources** turn data into options; `checkRuleAgainstLens` enforces; `toPrisma`/`toSql` push to the store; **builders** edit it headlessly; **transitions** and **permissions** compose it — never re-solving it; permissions 1.0 reflects its rules to the store the same way.
+`Condition` is the atom; `FieldMap` is the shape; a **lens** scopes the shape; **sources** turn data into options; `validateRuleInLens` enforces; `toPrisma`/`toSql` push to the store; **builders** edit it headlessly; **transitions** and **permissions** compose it — never re-solving it; permissions 1.0 reflects its rules to the store the same way.
 
 ---
 
@@ -140,8 +140,8 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **with-env** — run any command with the right env loaded. <small>CLI · `bun run with <env> <app> <cmd>`</small>
 - **PR environments** — ephemeral per-PR stack (DB branch, previews, isolated secrets), destroyed on close.
 - **Docker Compose dev services** — local Postgres/Redis/MinIO; pinned project name so worktrees share one stack.
-- **init vs setup** — `init` = one-time provisioning (Ink TUI: secrets/services); `setup` = per-dev bring-up (deps/Docker/Prisma/seed).
-- **Worktree tooling** — isolated parallel checkouts sharing one container stack, per-slot DB names + bucket prefixes.
+- **init vs setup** — `init` = one-time provisioning (Ink TUI, or headless `init:agent`: secrets/services); `setup` = per-dev bring-up (deps/Docker/Prisma/seed).
+- **Worktree tooling** — isolated parallel checkouts sharing one container stack; each slot gets its own databases, buckets, Redis DB and ports. <small>CLI · `bun run worktree:create` / `worktree:list` / `worktree:destroy`</small>
 
 ### API & routing
 
@@ -152,22 +152,22 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **makeController** — type-safe handler bound to a route; only the route's declared statuses are respondable (wrong-shape responses caught at compile time). <small>API · `respond.ok`/`respond.created`/`respond.noContent` → the uniform `{ data }` envelope</small>
 - **Errors** — one error contract `{ error, message, guidance, fieldErrors?, requestId }`; a global `onError` normalizes Zod/Prisma/HTTPException/raw and stamps `requestId`; drift-free labels per status code. <small>API · `makeError`/`AppError` · `HTTP_ERROR_MAP` · `errorHandlerMiddleware`</small>
 - **paginate()** — list-endpoint orchestrator: applies search + filter + ordering + pagination from the request; returns `{ data, pagination }`.
-- **Bracket-notation query language (`bracketQuery`)** — one URL syntax for **filtering and ordering**: `filter[user.email][gte]=…` and `?orderBy[]=field:dir` (GraphQL-like, URL-based, cacheable); the `[:]` marker carries real `null`/`true`/`false` through all-string params (allowlisted, no eval); `dialect` handles provider-specific JSON-path filtering. <small>API · `parseBracketNotation` → `BracketQueryRecord` (the `bracketQuery` ctx var) · `buildWhereClause` (filters → Prisma `where`, scope-merged, lens-validated) · `buildOrderBy` (sort) · `@template/shared/bracketQuery` (symbols/operators) · FE: `buildFilterQuery`/`serializeBracketQuery`</small>
-- **Batch API** — many requests in one call; strategies `transactionAll`/`transactionPerRound`/`allowFailures`/`failOnRound`; `<<round.req.path>>` interpolation.
+- **Bracket-notation query language (`bracketQuery`)** — one URL syntax for **filtering and ordering**: `filter[user.email][gte]=…` and `?orderBy[]=field:dir` (GraphQL-like, URL-based, cacheable); the `[:]` marker carries real `null`/`true`/`false` through all-string params (allowlisted, no eval); `dialect` handles provider-specific JSON-path filtering. <small>API · `parseBracketNotation` → `BracketQueryRecord` (the `bracketQuery` ctx var) · `buildWhereClause` (filters → Prisma `where`, lens-validated, the lens's root wheres ANDed in) · `buildOrderBy` (sort) · `@template/shared/bracketQuery` (symbols/operators) · FE: `buildFilterQuery`/`serializeBracketQuery`</small>
+- **Batch API** — many requests in one call; strategies `transactionAll`/`transactionPerRound`/`allowFailures`/`failOnRound`; `<<roundIndex.requestIndex.path>>` interpolation.
 - **OpenAPI 3.1 generation** — full 3.1.0 spec served as JSON at `/openapi/docs` (via `app.doc31`); drives the SDK.
 - **Generated SDK (`@template/sdk`)** — hey-api typed client + TanStack Query hooks + query keys from the OpenAPI spec.
 - **Module structure** — allowlisted folders per `modules/<name>/`: routes/controllers/services/schemas/queries/tests/…; shared code → `lib/`.
-- **Router exports / Modules constant** — `<resource>Router`/`admin<Resource>Router` mounted in `index.ts`; type-safe model-name registry (`Modules.organization`, not `'organizations'`).
+- **Router exports / Modules constant** — `<resource>Router`/`admin<Resource>Router` exported from each module's `index.ts`, mounted in `routes/api.ts` / `routes/admin.ts`; type-safe model-name registry (`Modules.organization`, not `'organizations'`).
 
 ### Request context & errors
 
 *Why: multi-tenant code must never leak across requests — so identity, tenant, db client, and permissions are isolated per request and flow implicitly, not threaded by hand.*
 
-- **prepareRequest** — first middleware; sets db/requestId/permix, nulls auth, wraps in `db.scope`.
-- **requestContext (AppEnv)** — typed per-request Hono Variables (db, user, token, permix, resource, filterLens, …).
-- **getActor** — resolve the effective actor uniformly across session and org/space tokens.
+- **prepareRequest** — first middleware after CORS; sets db/requestId/permix, nulls auth, parses `bracketQuery`, wraps in `db.scope`.
+- **requestContext (AppEnv)** — typed per-request Hono Variables (db, user, token, permix, resource, filterLens, bracketQuery, …).
+- **permix.getActor** — the actor the rules see, `{ model, record }`: the user for a JWT or spoof, the token's own columns for an API token. <small>API · `GET /api/v1/identify` answers it for any credential</small>
 - **getResource / resourceContextMiddleware** — auto-load the `:id` resource (404 on 0, 409 on >1) before authorization.
-- **scopeNarrowing** — merge per-request tenant/ownership `where` scope into the filter lens.
+- **Per-request scope (bind tokens)** — a route's static `filterLens` carries `bind` tokens for tenant/ownership scope; the controller passes their values to `paginate`, which refuses a lens with a token missing.
 - **Database scope (AsyncLocalStorage)** — request/job correlation id. <small>API · `db.getScopeId()` · `db.isInTxn()`</small>
 - **getValidatedBody / getValidatedQuery** — typed validated input outside route-typed context.
 
@@ -185,15 +185,14 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: the DB is where correctness, type-safety, and consistency are won or lost — these primitives make Prisma transactional-by-default, runtime-introspectable, and impossible to misuse.*
 
 - **prismaMap (`@inixiative/prisma-map`)** — generated runtime model/field/relation map; powers hooks, factories, lenses.
-- **Typed model IDs** — phantom-branded `UserId`/`OrganizationId` prevent cross-model ID mixups at compile time.
 - **Model name utilities** — `ModelName` ↔ `AccessorName` conversion. <small>API · `isModelName` · `isAccessorName`</small>
 - **UUIDv7 IDs** — time-sortable PKs without coordination; better index locality than v4.
 - **db client (txn-aware proxy)** — routes to the active transaction when present, else raw. <small>API · `db.scope` · `db.txn` (auto-merging) · `db.onCommit` (after-commit side effects) · `db.findForUpdate` (row lock, txn-only) · `db.raw.*` (bypass)</small>
 - **assertNoNestedWrites** — reject nested writes that would skip lifecycle hooks (validation/audit).
 - **Disabled createMany/updateMany** — they return no rows (break hooks); use `*AndReturn`.
 - **pass-the-delegate** — pass a concrete delegate so TS infers exact types for dynamic model access. <small>API · `query.findMany(db.user, …)` · `RuntimeDelegate`/`AnyCrudDelegate` (runtime-only access)</small>
-- **hydrate** — batch-resolve a record's FK relations (no N+1) from `prismaMap`.
-- **Lens helpers** — json-rules lens over the schema → Prisma include/projection/redaction. <small>API · `lensFor` · `includeFromLens` · `prune` · `redactLens` · `fetchLens`</small>
+- **hydrate** — load a record's owning to-one relations along `schemaMap`, each parent read through `fetchOne` under its own cache key; the permissions library's `createHydrator`. <small>API · `hydrate(accessor, record)` · `fetchOne`</small>
+- **Lens helpers** — json-rules lenses over the Prisma schema, plus narrowing layers and a fetch through them. <small>API · `lensFor` (base lens for a model) · `redactLens` (omit redact fields) · `omitForeignKeys` · `fetchLens` (`toLensSelect` + `projectRows`) · `searchablePaths` / `orderablePaths` · conditions `live` / `boundAndLive` / `platformOrBound` / `through`</small>
 - **Path notation** — safe dot-notation nested queries (charset/depth guarded). <small>API · `buildNestedPath` · `validatePathNotation`</small>
 - **Seed (SeedFile / `--prime`)** — FK-ordered idempotent upserts by UUIDv7; `prime` records are dev-only.
 - **Split schema** — one `.prisma` file per model, combined at generation (fewer merge conflicts).
@@ -215,23 +214,22 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **False polymorphism + PolymorphismRegistry** — type enum + separate FK columns (not a real polymorphic FK); one source of truth for constraints/rules/immutability.
 - **preventHardDelete / soft delete** — `deletedAt`; `SOFT_DELETE_MODELS`; `null→timestamp` recorded as a delete.
 - **HOOK_IGNORE_FIELDS / isNoOpUpdate** — skip audit/cache/webhooks when only noise fields changed.
-- **auditActorContext** — AsyncLocalStorage actor (user/token/spoof/IP/inquiry) auto-attached to mutations/events.
-- **Slow mutation logging** — warn when a mutation exceeds 5s.
+- **auditActorContext** — AsyncLocalStorage actor (user/token/spoof/job/integration/IP/inquiry) auto-attached to mutations/events.
 
 ### Auth & sessions
 
-*Why: support every auth shape (cookie session, OAuth bearer, API token, impersonation) behind one resolved actor — so handlers never care how the caller authenticated.*
+*Why: support every auth shape (a user JWT from email/password or OAuth, an API token, impersonation) behind one resolved actor — so handlers never care how the caller authenticated.*
 
-- **BetterAuth** — session-based browser auth (signup/signin/OAuth) issuing a stateless JWT.
-- **Stateless JWT session** — JWT in HTTP-only cookie (email/pw) or localStorage Bearer (OAuth); `cookieCache` skips DB validation for a window.
-- **secondaryStorage (Redis)** — fast permission/org caches; not the primary session store.
+- **BetterAuth handshake** — BetterAuth runs sign-up, sign-in, email verification and OAuth; the session it creates lives at most 10 minutes, and `jwtHandoff` swaps it for a user JWT before the response leaves the API. <small>API · `jwtHandoff` · `withThrowawaySession` (call BetterAuth's session-bound account endpoints server-side)</small>
+- **User JWT** — ES256, 30 days, kept by the client and sent as `Authorization: Bearer`; bearer-only, so no cookie or session ever authenticates an API request. It carries `User.jwtVersion` as `ver`; incrementing the version signs the user out everywhere. <small>API · `jwtAuthMiddleware` · `rotateUserJwts`</small>
+- **secondaryStorage (Redis)** — holds BetterAuth's handshake sessions and the OAuth one-time tokens; the Prisma `Session` model holds no rows.
 - **AuthProvider (per-org OAuth/SAML)** — org-scoped (`organizationId` required) OAuth/SAML config with encrypted secrets; platform-wide providers are env-driven via `getPlatformProviders()`, not `AuthProvider` rows.
 - **Token authentication** — `Authorization: Bearer`/`?token=`, SHA-256 hashed, Redis-cached; `keyPrefix` identifies without exposing.
-- **Token owner / hierarchical scope** — polymorphic owner (User/Org/OrgUser/Space/SpaceUser); scope determines reach.
-- **Auth middleware chain** — `prepareRequest → tokenAuth → authMiddleware → spoof`; token wins over cookie.
+- **Token owner / hierarchical scope** — polymorphic owner (User/Org/OrgUser/Space/SpaceUser/Integration); the owner determines reach.
+- **Auth middleware chain** — `prepareRequest → jwtAuthMiddleware → tokenAuthMiddleware → spoofMiddleware → auditActorMiddleware`; a JWT-shaped bearer is the user's JWT, any other bearer an API token.
 - **setUserContext / refreshUserContext** — populate user/org/space + permissions; rebuild mid-request after changes.
 - **Spoofing (impersonation)** — superadmin `x-spoof-user-email`; records `spoofedBy`; response headers + UI badge for auditability.
-- **Auth gates** — auth-method/role guards. <small>API · `validateUser` · `validateActor` · `validateNotToken` · `validateSuperadmin` · `basicAuthMiddleware` (HTTP Basic for utilities, e.g. BullBoard)</small>
+- **Auth gates** — there is no "is there a user" gate: every route names its permission action, and user-only acts are rules on the actor (`actorIsUser`). <small>API · `validateSuperadmin` (the admin router) · `basicAuthMiddleware` (HTTP Basic for utilities, e.g. BullBoard)</small>
 
 ### Authorization (RBAC / ABAC / ReBAC)
 
@@ -258,19 +256,19 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **Column-triplet convention** — `encrypted{Field}` + `…Metadata` + `…KeyVersion`. <small>API · `encryptField`/`decryptField` generics</small>
 - **EncryptionKeyring / key versions** — current + previous key for dual-key zero-downtime rotation.
 - **rotateEncryptionKeys (singleton job)** — idempotent re-encrypt via `updateManyAndReturn where version=N`.
-- **`validateEncryptionVersions`** — rejects key-version gaps/downgrades/mixed versions (the deploy-time guard; currently exercised in tests).
+- **`validateEncryptionVersions`** — rejects key-version gaps/downgrades/mixed versions (called from its tests only).
 
 ### App events & jobs
 
 *Why: business logic must never call email/SMS/analytics directly — it emits an event; bridges and background jobs do the side effects reliably, after commit, off the request path.*
 
 - **emitAppEvent** — fire a business event decoupled from side effects; auto-enriches actor. <small>API · `makeAppEvent` (define one event's fan-out) · `appEventHandlers` (typed name→handler map; `onCommit` deferral in txns)</small>
-- **bridges** — email (`EmailHandoff` → sendEmail job), websocket (`WSEvent` refetch triggers), observe (→ `recordAppEvent`), raw callbacks — each independent via `Promise.allSettled`.
+- **handoffs** — email (`EmailHandoff` → `sendEmail` planner job), websocket (`WSHandoff`: a channel refetch via `sendToChannel`, or a stream append built by `streamAppend`), callbacks (`cb`), and observe (the envelope to the log and an `AppEvent` row via `observeRegistry`) — each independent via `db.parallel(…, { resolution: 'allSettled' })`, failures thrown after all settle.
 - **enqueueJob** — typed central job dispatch with overflow protection + dedupe. <small>API · `makeJob` (basic) · `makeSingletonJob` (one-at-a-time, lock) · `makeSupersedingJob` (newest cancels older, lanes)</small>
 - **jobHandlers / ctx.log** — typed name→payload→handler registry; dual-write logging (stdout + BullBoard).
-- **Worker / BullMQ** — concurrency 10, retries, graceful shutdown; own Redis connection.
+- **Worker / BullMQ** — concurrency 10 by default (`JOBS_WORKER_CONCURRENCY`), retries, graceful shutdown; own Redis connection.
 - **BullBoard** — queue/job monitoring UI; receives worker logs via broadcast.
-- **Job overflow buffer (JobOutbox)** — adhoc jobs spill to DB rows past `maxQueueDepth`. <small>API · `accumulator` (batches the writes) · `drain` loop (re-admit FIFO under a lock) · `quarantine` (poison rows after N attempts) · overflow flag / `queueDepth` (set-once trip flag + cached waiting+active probe)</small>
+- **Job overflow buffer (JobOutbox)** — adhoc jobs spill to DB rows past the queue depth budget (`JOBS_MAX_QUEUE_DEPTH`). <small>API · `accumulator` (batches the writes) · `drain` loop (re-admit FIFO under a lock) · `quarantine` (poison rows after N attempts) · overflow flag / `queueDepth` (set-once trip flag + cached waiting+active probe)</small>
 - **Cron jobs / JobType** — DB-defined schedules registered at startup; `cron|cronTrigger|adhoc`.
 - **messaging** — non-email multi-channel dispatch. <small>API · `messageUser`/`messageContact` · `messageProviderRegistry` (pluggable per-`ContactType` adapters)</small>
 
@@ -289,18 +287,18 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: caching is only safe if invalidation is automatic and keys never collide — a namespaced key scheme plus mutation-driven invalidation makes reads fast without staleness bugs.*
 
 - **Redis connection strategy** — main shared client + dedicated subscriber + BullMQ's own. <small>API · `createRedisConnection` · `getRedisClient`/`getRedisSub`</small>
-- **redisNamespace** — central key-prefix map (`bull`/`cache`/`job`/`ws`/`otp`/`session`/`limit`/`lock`/`lane`).
-- **Cache** — get-or-set memoization with TTL + negative-caching (stampede protection); canonical `cache:{accessor}:{field}:{value}[:tags][:*]` keys; a reverse-reference map clears the right keys on mutation. <small>API · `cache` · `cacheKey`/`validateKey` (throws on `undefined`) · `clearKey` (exact/wildcard) · `RedisMock`/`flushRedis` (tests)</small>
+- **redisNamespace** — central key-prefix map (`bull`/`cache`/`cacheWritten`/`job`/`ws`/`otp`/`session`/`limit`/`lock`/`lane`/`rollingCache`).
+- **Cache** — get-or-set memoization with TTL; concurrent misses on one key compute once (a single-flight lock) and null results get a short TTL; canonical `cache:{accessor}:{field}:{value}[:tags][:*]` keys; a reverse-reference map clears the right keys on mutation. <small>API · `cache` · `checkCache` · `upsertCache` · `cacheKey` (a key containing `undefined` is refused on read and write) · `clearKey` (exact/wildcard) · `flushRedis` (tests, which run on an in-memory ioredis-mock)</small>
 
 ### Realtime / websockets
 
 *Why: clients need instant "your data changed" signals across load-balanced servers, without leaking data or hand-managing subscriptions — refetch triggers over Redis pub/sub do it.*
 
-- **WebSocket server** — native Bun WS on the Hono port; anonymous at handshake, then token auth via an in-band `authenticate` message.
-- **Connection lifecycle / registry** — track by id/user/channel; identity via `authenticate`/`spoof`/`logout`.
-- **channelKey / WSEvent** — query identity key; data-free `{category:'query', action:'refetch', key}` contract.
-- **Pub/sub fan-out** — publish to the `ws:broadcast` Redis channel → every instance delivers locally. <small>API · `sendToChannel` · `sendToUser` · `broadcast` · `initWebSocketPubSub`</small>
-- **LIVE_QUERIES** — operationIds with a BE producer; the FE subscribes only to these.
+- **WebSocket server** — native Bun WS on the Hono port; anonymous at the upgrade, then the credential (a user JWT or an API token) arrives in an in-band `authenticate` frame and is resolved through `/api/v1/identify`.
+- **Connection lifecycle / registry** — track by id/user/channel/stream; identity via `authenticate` frames (spoof and unspoof re-send one) and `logout`; changing the user or credential drops every channel and stream.
+- **channelKey / WSEvent** — query identity key; a channel carries a data-free `{category:'query', action:'refetch', key}` hint, and a subscription is authorized by probing the channel's own HTTP route. Data streams carry rows instead, as a `snapshot` then sequenced `append` frames.
+- **Pub/sub fan-out** — publish to the `ws:broadcast` Redis channel → every instance delivers locally. <small>API · `sendToChannel` · `appendToStream` · `broadcast` · `initWebSocketPubSub`</small>
+- **LIVE_QUERIES** — operationIds with a BE producer, derived from the `WS_CHANNELS` registry; the FE subscribes only to these.
 - **createApiWebsocket / client pipe** — channel refcount, reconnect, send-queue; queryCache subscriber → auto subscribe/invalidate.
 - **WS heartbeat / stale sweep** — ping/pong liveness; close idle connections; FE force-reconnect.
 
@@ -308,17 +306,17 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 *Why: transactional email must be tenant-overridable, idempotent, consent-aware, and reconstructable — a DB-driven template system + a planner/deliver pipeline gives at-most-once sends you can audit.*
 
-- **EmailTemplate / EmailComponent** — tenant-overridable MJML templates + reusable blocks (`{{component:slug}}`).
-- **Render pipeline** — fetch + recursively expand components + substitute `{{sender/recipient/data.*}}`. <small>API · `compose` · `expand` · `interpolate` · `evaluateConditions` (`{{#if rule=…}}` via json-rules; a throwing rule drops the branch)</small>
-- **Cascade resolution (lookupCascade)** — owner chain Space→Org→default (and user chain) picks the right-tier template.
-- **EmailOwnerModel / inheritToSpaces** — false-polymorphic ownership: default/admin/Org/Space/User/…
-- **EmailErrorPolicy** — `fail` (retry→DLQ) / `degrade` (drop bad blocks) / `fallback` (re-render one owner up).
+- **EmailTemplate / EmailComponent** — tenant-overridable MJML templates + reusable blocks (`{{#component:slug}}`).
+- **Render pipeline** — fetch + recursively expand components + substitute `{{sender/recipient/data/system.*}}`. <small>API · `composeTemplate` / `composeComponent` · `expand` · `interpolate` · `evaluateConditions` (`{{#if rule=…}}` via json-rules; a degraded or throwing rule renders nothing)</small>
+- **Cascade resolution (lookupCascade)** — owner chain Space→Org→default (and the user chain: SpaceUser, OrgUser, User, default) picks the right-tier template.
+- **EmailOwnerModel / inheritToSpaces** — false-polymorphic ownership: default/admin/Org/Space/User/OrgUser/SpaceUser.
+- **Render issue policy (`render.onIssue`)** — set on the template's registry entry: `platform` (default: re-render from the platform tier's row of the same slug) / `fail` (retry→DLQ) / `degrade` (send with failing blocks and tokens empty, issues recorded) / `substitute` (render another template instead).
 - **sendEmail planner → deliverEmail** — two-stage fan-out: planner finds-or-creates one log per recipient, then one deliver job each.
 - **idempotencyKey** — event-anchored hash-last key collapses duplicate sends but re-sends on payload change.
-- **CommunicationLog** — per-recipient delivery ledger + at-most-once fence; re-renderable without storing the body.
+- **CommunicationLog** — per-recipient delivery ledger + at-most-once fence; stores the settled MJML, variables and render issues.
 - **canDeliver (acceptedKinds)** — per-`Contact`/`CustomerRef` consent by `CommunicationKind`.
-- **Unsubscribe (HMAC link)** — signed one-click unsubscribe (RFC 8058 headers) for non-user recipients.
-- **Deliverability cache** — bouncer verdict cached on `Contact` (TTL); skip undeliverable pre-send.
+- **Unsubscribe (HMAC link)** — signed one-click unsubscribe (RFC 8058 headers, POST-only) for every non-`system` email; one kind for one contact.
+- **Deliverability cache** — bouncer verdict cached on `Contact.deliverability` (TTL 30 days); skip undeliverable pre-send.
 - **Email versioning / recompose** — audit-log version graph reconstructs exactly what was sent.
 - **Email clients (Resend/Console)** — pluggable `EmailClient` per environment.
 
@@ -327,7 +325,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: three apps share one state model and one API contract — a single composable store + generated SDK keep client state, tenancy, and server data coherent without per-app forks.*
 
 - **useAppStore** — one shared Zustand store composing 6 slices; consumed via `@template/ui/store` (all three apps). <small>API · `create<X>Slice` composition → `AppStore` = their intersection</small>
-- **Store slices** — `AuthSlice` / `TenantSlice` / `PermissionsSlice` / `NavigationSlice` / `ClientSlice` / `UISlice` (identity / tenant context / FE ReBAC / nav config / QueryClient+WS / theme); superadmin swaps in user-context-first slices (no forced tenant switch).
+- **Store slices** — `AuthSlice` / `TenantSlice` / `PermissionsSlice` / `NavigationSlice` / `ClientSlice` / `UISlice` (identity / tenant context / FE ReBAC / nav config / QueryClient+WS / theme); every app composes the same six.
 - **File-based routing (TanStack Router)** — `createFileRoute` under `app/routes/`; nesting via `<Outlet/>`; layout routes `_authenticated` (guard+AppShell) / `_public` / `_fullscreen`.
 - **Guards** — redirect in `beforeLoad`, preserve `redirectTo`/context. <small>API · `requireAuth` · `requirePublic`</small>
 - **useAuthenticatedRouting** — sync tenant context + spoof between URL and store; route permission check.
@@ -371,14 +369,14 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **inquiry** — generic request/approval/audit primitive; polymorphic source/target, per-type handler, status state machine.
 - **InquiryType / handler** — `inviteOrganizationUser`/`createSpace`/`updateSpace`/`transferSpace`; a handler = content+resolution schemas + `handleApprove`/`autoApprove`/`unique`/expiry.
 - **contact + ContactType (~22)** — one polymorphic-owner model for phone/email/social handles; per-type registry def; deliverability + `acceptedKinds`.
-- **customerRef** — false-polymorphic customer (User/Org/Space) ↔ provider (Space) link.
+- **customerRef** — false-polymorphic customer ↔ provider link; each side a User, Organization or Space.
 - **webhookSubscription / webhookEvent** — owner-polymorphic outbound subscriptions; per-attempt delivery ledger (RSA-signed).
 - **auditLog** — immutable who/what/before/after with actor + tenant + polymorphic subject.
 - **cronJob** — DB-defined scheduled jobs (pattern/handler/payload/enabled, retry config).
-- **token / authProvider / account / session / verification** — API keys / org auth config / external credentials / sessions / verification values.
+- **token / authProvider / account / session / verification** — API keys / org auth config / external credentials / BetterAuth's session schema (handshake sessions live in Redis) / verification values.
 - **tag / tagCategory / tagAttachment** — owner-scoped labels grouped by category, attached to resources.
 - **batch** — multi-request execution with strategies, interpolation, and `BatchStatus`.
-- **entitlements / invitations** — feature grants beyond role; invitation = the `inviteOrganizationUser` inquiry.
+- **entitlements / invitations** — entitlements are action grants beyond a role (see Authorization); invitation = the `inviteOrganizationUser` inquiry.
 - **admin / superadmin surfaces** — privileged cross-tenant listing/management; `superadmin` app + permission bypass.
 
 ### Testing & quality
@@ -387,7 +385,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 
 - **Test factories (`build*`/`create*`)** — in-memory (`build*`) vs persisted (`create*`) records; auto-infer FK deps. <small>API · `createFactory(model, config)` · `getNextSeq()` (unique values) · `packages/db/src/test/factories`</small>
 - **`__serialize()`** — convert `Date`→ISO to assert against API/SDK string-timestamp shapes (CI-enforced in UI tests).
-- **createTestApp** — Hono app with mocked auth/tenancy; auto superadmin bypass.
+- **createTestApp** — Hono app with a mocked user, memberships or token whose permissions install as in a real request; `mount` the routers under test.
 - **request helpers** — concise HTTP calls + `{data, pagination}` parsing (`get`/`post`/…/`json`).
 - **cleanupTouchedTables / `--max-concurrency=1`** — DB test isolation; serial test runs.
 - **happy-dom** — browser-less DOM testing via `bunfig.toml` preload.
@@ -399,13 +397,13 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 *Why: in production you need to trace one request/job across every log line and catch errors without coupling app code to a vendor — scoped structured logging + optional otel/sentry.*
 
 - **logger** — structured logging over a swappable adapter (pino deployed / consola local); server-only. <small>API · `LogScope`/`logScope()` (nesting tags, request/job `requestId`) · `addLogBroadcast` (extra sinks, e.g. BullBoard)</small>
-- **frontendLogger** — browser-safe logger, never crosses with the server logger.
-- **OpenTelemetry / Sentry** — optional tracing + error tracking, env-gated, skipped local/test.
+- **frontendLogger** — browser-safe logger, never crosses with the server logger. <small>API · `createFrontendLogger`</small>
+- **OpenTelemetry / Sentry** — logs, traces and metrics to any OTLP destination (exported in hosted environments when an endpoint is configured; local and test only with `OTEL_ENABLED=true`); Sentry error reporting behind the errorReporter adapter.
 
 ### Atlas — the code map
 
 *Why: a large codebase is unnavigable by folders alone — atlas lets you find code by concept/role/dependency and enforces that the map stays true.*
 
-- **atlas** — navigate by concept not folders: `@atlas` annotations + `.atlas/` registry + generated `MAP.md`. <small>CLI · `graph` (reverse indexes) · `query` (by kind/partOf/json-rules) · `stamp` (fill derivable axes) · `check`/`coverage` (CI)</small>
+- **atlas** — navigate by concept not folders: `@atlas` annotations + `.atlas/` registry + generated `MAP.md`. <small>CLI · `graph` (reverse indexes) · `query` (by kind/partOf/uses/path/json-rules) · `generate` (write `MAP.md`) · `stamp` (fill derivable axes) · `check`/`coverage` (CI) · `hook read` / `hook grep` (agent hooks)</small>
 - **`@atlas` block** — per-file `@kind` (role) / `@partOf` (concepts) / `@uses` (load-bearing deps) / `@constructs`.
 - **`.atlas/` config** — `config.ts` (stamp/include rules), `kinds.ts` (role vocab), `concepts.ts` (concept registry).
