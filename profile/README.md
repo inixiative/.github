@@ -2,155 +2,119 @@
   <img src="https://raw.githubusercontent.com/inixiative/.github/main/icon-400x400.png" alt="inixiative" width="120" />
 </p>
 
-<p align="center"><strong>technology for cooperation</strong></p>
+<p align="center"><strong>Technology for cooperation.</strong></p>
+
+<p align="center">
+  <a href="#agentic">Agentic</a> · <a href="#building-blocks">Building blocks</a> · <a href="#governance">Governance</a>
+</p>
 
 ---
 
-We're building the infrastructure that lets strangers collaborate on complex, long-horizon endeavors with the same trust they'd extend a neighbor — identity, governance, and investment, at scale.
+## Agentic
 
-Most platforms re-solve the same problems badly, five times over: who can see what, who can do what, how automation and forms and state stay safe as tenants nest inside tenants. **Our open source is a bet that these aren't separate problems — they're one.** A single, serializable, *enforceable model of authority over data*, expressed in one small predicate language, that governs all of them. The libraries are deliberately small; the leverage is in how they compose.
+**An agent that works like you do.** Giving your work a voice.
 
-Two things are built here at once, on purpose: the **cooperation platform**, and the **AI-engineering infrastructure we use to build it** — and we dogfood the latter into the former.
+Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and these tools give you a real way to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, when Aron's corrections were injected before planning, the plans came out right. Oracle runs the tuning loop.
 
----
+### Foundry
 
-## The spine — one predicate language, one authority model
+The workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. The voice of the codebase.
 
-The core bet: a serializable predicate language and a composable, enforceable model of authority over data. Everything else is a consumer of it.
+- **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides.
+- **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions, a worker per thread, every session captured.
+- **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Host side built; joiner view in progress.)*
+- **Stop checking a dozen apps.** Work comes to you, already understood. *(In progress.)*
+- **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. *(In progress.)*
 
-**→ [Full vocabulary](https://www.inixiative.com/vocabulary.html)** — every primitive across the ecosystem and the template, with what it solves and how it works. ([source](https://github.com/inixiative/.github/blob/main/VOCABULARY.md))
+[GitHub](https://github.com/inixiative/foundry) · [npm](https://www.npmjs.com/package/@inixiative/foundry)
 
-### json-rules
+### Kingdom
 
-One serializable `Condition` AST, three backends: evaluate in memory (`check`), compile to a Prisma query (`toPrisma`), or to a PostgreSQL `WHERE` (`toSql`). 38 operators across scalars, dates, windowing, arrays, and multi-source graphs.
+Everything you're doing, in one place. Your apps, data, AI and agents across every team you're in. Decide who and what can reach each piece, for how long, and take it back. Bring your agent.
 
-On top of the AST sits the **lens**: a composable, enforceable model of *what a party can see and what it can do*, delegated down trust boundaries (org → space → subtenant → client) — narrow-only, with `where` clauses as grants applied server-side, enforced at author-time *and* execution-time. It's the authority/visibility spine the rest of the stack composes on, not a filter helper. Author a predicate once; run it wherever it has to run, against whatever source.
+[kingdom.inixiative.com](https://kingdom.inixiative.com)
 
-[GitHub](https://github.com/inixiative/json-rules) · [npm](https://www.npmjs.com/package/@inixiative/json-rules)
+### Signet
 
-### prisma-map
+Pass-through execution with tracking and audit, built on the permissions library. The way anything uses an integration through Kingdom: a revocable pass on the owner's terms.
 
-An ORM-agnostic, runtime-friendly model map extracted from a Prisma client — the schema reflection the lens reasons over, so authority can be expressed over your real data graph without coupling to Prisma internals. Works with Prisma v6 and v7.
+[GitHub](https://github.com/inixiative/signet) · [npm](https://www.npmjs.com/package/@inixiative/signet)
 
-[GitHub](https://github.com/inixiative/prisma-map) · [npm](https://www.npmjs.com/package/@inixiative/prisma-map)
+### KCP, the Kingdom CLI Proxy
 
-### permissions
+Run your provider CLIs through Kingdom with no credentials on your machine. Kingdom runs the command and streams the output back. *(In progress.)*
 
-Relationship-based access control as json-rules predicates: relationship-walking, per-row grants, and an app-injected resolver so the engine stays generic. Permissions stop being bespoke `if`-checks scattered through controllers and become *rules authored over your authorized view* — the same primitive, pointed at "can this actor do X."
+[GitHub](https://github.com/inixiative/kcp) · [npm](https://www.npmjs.com/package/@inixiative/kcp)
 
-[GitHub](https://github.com/inixiative/permissions) · [npm](https://www.npmjs.com/package/@inixiative/permissions)
+### Archive
 
-### transitions
+Keeps every agent session. Local-first, and syncs to the archives you choose.
 
-State machines whose guards and affordances are json-rules predicates. The same authority model, applied to a different question — "which move is legal now, for this actor, given this state" — so your workflow rules and your permission rules speak one language.
+[GitHub](https://github.com/inixiative/archive) · [npm](https://www.npmjs.com/package/@inixiative/archive)
 
-[GitHub](https://github.com/inixiative/transitions)
+### Oracle
 
-### rules-builder
-
-The visual editor for everything above: compose conditions against a lens surface, drag-and-drop, no JSON by hand. Headless core plus a bring-your-own-components contract, so it drops into any design system. The authoring front-end for permissions, email automation, feature flags, and forms alike.
-
-[GitHub](https://github.com/inixiative/rules-builder)
-
-### conditional-form
-
-⏸ *Paused — not actively maintained, not recommended for use (may be revived).* Dynamic forms whose show/hide and validation logic *is* the same predicate language. Forms that reason exactly like the backend does — define the rule once and it governs both the UI and the submission.
-
-[GitHub](https://github.com/inixiative/conditional-form) · [npm](https://www.npmjs.com/package/@inixiative/conditional-form)
-
----
-
-## The platform
-
-What the spine is for.
-
-### template
-
-The SaaS foundation the platform stands on: Bun, Hono, Prisma 7, React/TanStack, BullMQ, Redis — with auth, multi-tenancy, permissions, jobs, an app-events bus, audit logging, field-level encryption, and the whole rules/lens spine wired in. Fork it and the hard, security-critical parts are already done and tested. *(in progress)*
-
-[GitHub](https://github.com/inixiative/template)
-
-### whitepaper
-
-Adaptive governance infrastructure for cooperative societies — the thesis the platform implements: how groups of strangers set rules, hold one another accountable, and invest together without a central referee. *(in progress)*
-
-[GitHub](https://github.com/inixiative/whitepaper)
-
-### inixiative
-
-The product: identity, permissions, escrow, and governance — the shared infrastructure layer for cooperation at scale, built on the template and the spine. *(in progress)*
-
-[GitHub](https://github.com/inixiative/inixiative)
-
----
-
-## The AI engineering layer — build the tools, then build with them
-
-The infrastructure we use to ship the platform faster and more correctly — dogfooded daily.
-
-### foundry
-
-Agent orchestration: wraps Claude Code sessions with persistent memory, project conventions, multi-thread awareness, and correctness checking — a system designed to get sharper after every interaction instead of starting cold each time. *(in progress)*
-
-[GitHub](https://github.com/inixiative/foundry) · [Site](https://foundry-marketing.vercel.app)
-
-### foundry-oracle
-
-Corpus optimization: mines your merged PRs into evaluation fixtures, scores your codebase against them, and opens PRs with measurable improvements — turning your own git history into a feedback loop. *(closed beta)*
-
-[GitHub](https://github.com/inixiative/foundry-oracle) · [Waitlist](https://foundry-marketing.vercel.app/oracle)
+Measures whether a correction stuck, and tunes the docs and Wardens.
 
 ### agent-session
 
-Drive coding-agent CLIs as **persistent, streaming, event-captured sessions** — one interface, any agent. Most ways to script an agent are one-shot (`claude -p "…"`) and throw the process away; agent-session keeps a single long-lived process, streams turns, and captures every event. Claude Code and Codex today; Gemini and Grok planned. Powers foundry and bench.
+Drive Claude Code, Codex and Muse as persistent streaming sessions behind one interface.
 
-[GitHub](https://github.com/inixiative/agent-session)
+[GitHub](https://github.com/inixiative/agent-session) · [npm](https://www.npmjs.com/package/@inixiative/agent-session)
 
-### atlas
+### bench: Do I Still Have a Job?
 
-A concept map of your codebase: lightweight `@atlas` annotations plus a queryable graph (`atlas graph` / `atlas query`), so humans and agents navigate by *concept* — feature, primitive, infrastructure — instead of crawling folders.
+Our own challenge set for coding agents, from staff to architect tiers. Results are from June 2026; more challenges are coming.
 
-[GitHub](https://github.com/inixiative/atlas) · [npm](https://www.npmjs.com/package/@inixiative/atlas)
-
-### gloss
-
-Decluttering as infrastructure: comments interrupt code, so gloss keeps source files comment-free and moves explanation into a mirrored sidecar tree — `src/foo.ts` → `.gloss/src/foo.ts.md`. You read the source; you read the margin only if you're confused.
-
-[GitHub](https://github.com/inixiative/gloss)
-
-### bench
-
-An agentic-engineering benchmark with two tracks — build-from-scratch and work-within-an-existing-codebase — scored not just on passing tests but on *cruft vs elegance*: does the agent leave the codebase better, or just barely working.
-
-[GitHub](https://github.com/inixiative/bench)
-
-### hivemind
-
-⏸ *Paused — not actively maintained, not recommended for use (likely to be revived).* Multi-agent coordination: a message bus with role-scoped channels, so fleets of agents collaborate on a workflow without stepping on each other.
-
-[GitHub](https://github.com/inixiative/hivemind) · [npm](https://www.npmjs.com/package/@inixiative/hivemind)
+[bench.inixiative.com](https://bench.inixiative.com)
 
 ---
 
-## The toolchain
+## Building blocks
 
-### config
+**Stop rediscovering what you need to build.**
 
-One blessed toolchain for every repo above: TypeScript/Biome/Bun versions, shared tsconfig/biome/tsup presets, and a version manifest naming the coherent set of ecosystem packages. The `inixiative-config` CLI enforces it — `check` gates CI, `sync` heals drift, `scan` sweeps every checkout, `train` cascades a release through the dependency graph.
+### template
 
-[GitHub](https://github.com/inixiative/config) · [npm](https://www.npmjs.com/package/@inixiative/config)
+Like shadcn, but for the whole SaaS backend. You start from it and own the code: Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. To get your agent to use what's here, use the agentic level.
+
+[GitHub](https://github.com/inixiative/template)
+
+### The packages
+
+In dependency order.
+
+- **[json-rules](https://github.com/inixiative/json-rules)**: one rule AST compiles to in-memory checks, Prisma queries and SQL `WHERE` clauses. Serializable, with type-safe operators, paths and binding.
+- **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
+- **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
+- **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
+- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations that can't drift.
+- **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
+- **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
+- **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.
+
+Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemind), [conditional-form](https://github.com/inixiative/conditional-form).
+
+**[Full vocabulary](https://www.inixiative.com/vocabulary.html)** of every primitive ([source](https://github.com/inixiative/.github/blob/main/VOCABULARY.md)).
 
 ---
 
-## Stack
+## Governance
 
-`Bun` · `Hono` · `PostgreSQL` · `Prisma 7` · `React` · `TanStack` · `Tailwind v4` · `Redis` · `BullMQ`
+Designs for cooperation at scale: how groups set rules, hold each other accountable, and invest together without a central referee.
+
+[The proposals](https://www.inixiative.com/proposals) · [whitepaper on GitHub](https://github.com/inixiative/whitepaper)
 
 ---
 
-## Get In Touch
+## Open source
 
-We're open to advisory engagements and collaboration.
+MIT by default: the building blocks, Archive, agent-session, Signet, KCP, and Foundry's core engine and ACP adapter. Foundry's app is source-available under BSL 1.1: free to use, including at work, but not to resell; it becomes MIT in April 2030. Kingdom and Oracle are closed.
 
-- **Substack:** [@inixiative](https://inixiative.substack.com)
-- **Twitter/X:** [@inixiative](https://x.com/inixiative)
+We open the pieces people build on, and keep the hosted service and the tuning closed so the project can sustain itself.
+
+---
+
+**Contributors:** Aron Greenspan, Will Lawton.
+
+[www.inixiative.com](https://www.inixiative.com) · [Substack](https://inixiative.substack.com) · [X](https://x.com/inixiative)
