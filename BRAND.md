@@ -1,0 +1,92 @@
+# inixiative copy brief
+
+Aron's decisions, 2026-11-02. Every marketing surface uses these words: inixiative.com, the GitHub org profile, repo descriptions, READMEs and the Kingdom landing. When in doubt, use these exact lines. Don't invent new slogans. Each product fact matches what is built; anything not built yet is marked in progress.
+
+Why it lives here: our copy rotted once already. Old names stayed in repo descriptions and READMEs after the products moved on. This file is the one source. The marketing owner's weekly pass compares every public surface against it, and `@inixiative/config check` fails on the retired words below. Change the copy here first, by PR.
+
+## Voice
+
+- Write in plain language about what the user sees and gets, in short, direct sentences.
+- No em-dash asides, no "not X, but Y" constructions, no hype adjectives, and never "novel" or "revolutionary".
+- State the mechanism and the bet plainly, without hedging. Marketing is not the paper.
+- Don't invent numbers. Show why with specifics instead of superlatives.
+
+## inixiative
+
+- Line: **Technology for cooperation.**
+- Three doors, in this order: **Agentic** · **Building blocks** · **Governance**.
+- People: **Contributors: Aron Greenspan, Will Lawton.** Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
+- Mark: keep the current `<iXi>` exactly. The only allowed changes are outlining it to paths and a tighter favicon.
+
+## Agentic
+
+Theme: `data-domain="agentic"`, lime.
+
+- Lines: **"An agent that works like you do."** and **"Giving your work a voice."**
+- Framing (Aron's Substack, 2026-03-21, "The Real Problem With AI Coding Isn't Capability. It's Alignment."):
+  - Every session starts half-amnesiac, and you pay a re-alignment tax: re-explaining conventions, decisions and taste.
+  - The model and the harness are outside your control. Your corpus (docs, rules, CLAUDE.md) is the only layer you control, and Foundry gives you a real tool to control it.
+  - The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically.
+  - Early runs, where Aron's corrections were given to the agent before it planned, came out right. Cite them as "early runs" with no invented stats. Oracle runs the tuning loop.
+- **Foundry** (source-available, BSL 1.1) is the workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. Its pitches, in order:
+  1. **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides.
+  2. **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions; a worker per thread; every session captured.
+  3. **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. (Host side built; joiner view in progress.)
+  4. **Stop checking a dozen apps.** Work comes to you, already understood. (In progress.)
+  5. **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. (In progress.)
+
+  Subhead option: "The voice of the codebase."
+- **Kingdom** (closed, hosted at kingdom.inixiative.com): "Everything you're doing, in one place." Your apps, data, AI and agents across every team you're in. Decide who and what can reach each piece, for how long, and take it back. "Bring your agent." The Kingdom landing's eyebrow is always "Kingdom".
+- **Signet** (open, MIT): pass-through execution with tracking and audit, built on the permissions library. It is how anything uses an integration through Kingdom: a revocable pass on the owner's terms.
+- **KCP, the Kingdom CLI Proxy** (open, MIT; **in progress**): run your provider CLIs through Kingdom with no credentials on your machine. Kingdom runs the command and streams the output back. Don't claim it works end to end yet.
+- **Archive** (open, MIT): keeps every agent session, local-first, and syncs to the archives you choose.
+- **Oracle** (closed): measures whether a correction stuck and tunes the docs and Wardens (the loop). Give it one line, and never describe its method, fixtures or scoring.
+- **agent-session** (open, MIT): drive Claude Code, Codex and Muse as persistent streaming sessions behind one interface.
+- **bench** ("Do I Still Have a Job?"): our own challenge set for coding agents, staff to architect tiers. It is its own thing, not proof for Foundry. Its results are from June: show the date, and say more challenges are coming.
+
+Prior work: Foundry is not the first system to turn corrections into lasting guidance. Trace (arXiv 2606.13174) is the nearest prior work. State what is different; never claim "nobody else".
+
+## Building blocks
+
+Theme: `data-domain="building-blocks"`, amber.
+
+- Line: **Stop rediscovering what you need to build.**
+- Template is "like shadcn, but for the whole SaaS backend": you start from it and own the code. To get your agent to use the blocks, use the agentic level.
+- Show why each block is better, with specifics:
+  - **json-rules:** one rule AST compiles to in-memory checks, Prisma queries and SQL WHERE. Rules are serializable, with type-safe operators, paths and binding.
+  - **permissions:** RBAC + ABAC + ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. The core is about 1k lines.
+  - **transitions:** declarative lifecycles on json-rules.
+  - **rules-builder:** a headless builder that offers only what the engine can run.
+  - **prisma-map**.
+  - **atlas:** a codebase map that can't drift.
+  - **gloss:** comment-free source with sidecar explanations.
+  - **config:** the shared toolchain and theme.
+- Package order is dependency order: json-rules → permissions → transitions → prisma-map → atlas → rules-builder → config → gloss.
+
+## Governance
+
+Theme: `data-domain="governance"`, violet.
+
+- The whitepaper and proposals. There is no tagline yet; use a plain description: "Designs for cooperation at scale."
+- Long-form pages read in the light theme.
+
+## Open source
+
+- **MIT by default:** the building blocks, Archive, agent-session, Signet, KCP, and Foundry's core engine and ACP adapter.
+- **Source-available (BSL 1.1):** Foundry's app. It is free to use, including at work, but not to resell, and it becomes MIT in April 2030.
+- **Closed:** Kingdom and Oracle.
+- **Why, in one plain sentence (draft, pending Aron's wording):** we open the pieces people build on, and keep the hosted service and the tuning closed so the project can sustain itself.
+
+## Retired words (never publish)
+
+- Kastle / Castle (as a product)
+- Connection(s) as a Kingdom model
+- Cartographer, Librarian, Artificer and Steward as Foundry roles
+- "foundry-oracle"
+- medical or healthcare demos (a doctor's visit as a storytelling example is fine)
+- Cursor as a Foundry runtime
+- "your own LLM keys"
+- token savings as Foundry's value
+- "principal" for the permission holder in marketing copy: use actor and anchor. (Open: the permissions README still uses "principal" as its glossary word for any holder; Aron to decide whether that changes too.)
+
+Where a word can be checked mechanically, `@inixiative/config check` fails on it (its retired-terms rule, with per-repo allow lists and baselines). The rest are checked by the weekly pass.
