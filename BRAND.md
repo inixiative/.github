@@ -10,7 +10,7 @@ Why it lives here: our copy rotted once already. We left old names in repo descr
 - No em-dash asides, no "not X, but Y" constructions, no hype adjectives, and never "novel" or "revolutionary".
 - State the mechanism and the bet plainly, without hedging. Marketing is not the paper.
 - Don't invent numbers. Show why with specifics instead of superlatives.
-- Aron's chosen pitches stay exactly as written: "Technology for cooperation." · "An agent that works like you do." · "Giving your work a voice." · "Stop repeating yourself to Claude." · "Stop checking a dozen apps." · "Stop being a meat proxy." · "Everything you're doing, in one place." · "Bring your agent." · "The voice of the codebase." · "Stop rediscovering what you need to build." · "like shadcn, but for the whole SaaS backend" · the `<iXi>` mark. The sentences around them follow the rules below.
+- Aron's chosen pitches stay exactly as written: "Technology for cooperation." · "An agent that works like you do." · "Giving your work a voice." · "Stop repeating yourself to Claude." · "Stop checking a dozen apps." · "Stop being a meat proxy." · "Everything you're doing, in one place." · "Bring your agent." · "The voice of the codebase." · "Stop rediscovering what you need to build." · "like shadcn, but for the whole SaaS app" · the `<iXi>` mark. The sentences around them follow the rules below.
 
 The rules below are the short form of the no-slop skill; the skill holds the register anchors and the full detail (Aron, 2026-11-02: "Please use the no-slop skill on all of our copy."). If you have the skill (`~/.claude/skills/no-slop-writing`), load it and its two reference files before drafting. Why: Aron wants every public line to read as written by the people who built the product, with a fact in every sentence.
 
@@ -50,7 +50,7 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 - Line: **Technology for cooperation.**
 - Three sections, in this order: **Building blocks** · **Agentic** · **Governance** (Aron, 2026-11-02): the building blocks are the base, the agentic tools help people and their agents use them, and governance (tools for cooperation) is the long-term goal.
 - **The story, in this order (Aron, 2026-11-02).** Every surface that introduces inixiative tells it, in two sentences or in a page. Aron speaks in the first person singular where the copy is his.
-  1. **The building blocks are a decade of lessons, packaged.** Aron: "It's a decade of lessons learned and making my work portable, and not having to figure things out every time." Template and the libraries are those answers, so you start from them instead of rediscovering them. Six of the libraries (json-rules, transitions, prisma-map, rules-builder, atlas, gloss) run in production at the company where Aron works. Say that; don't name the company.
+  1. **The building blocks are a decade of lessons, packaged.** Aron: "It's a decade of lessons learned and making my work portable, and not having to figure things out every time." Template and the libraries are those answers, so you start from them instead of rediscovering them. Six of these packages (json-rules, transitions, prisma-map, rules-builder, atlas, gloss) run in production at the company where Aron works. Say that; don't name the company.
   2. **Coding agents ignore the answers, so Foundry exists.** Agents build parallel versions of what the codebase already has (on 2026-10-18 an agent built a second auth path in Kingdom beside the existing one). Aron: "If you were able to use the template, fine. I wouldn't need to have built Foundry." Foundry's Wardens point the agent at what exists. Kingdom, Archive, Signet, KCP and Oracle come from the same problem; keep them to a line each.
   3. **Governance is where it goes:** tools for people, and their agents, to cooperate. "Technology for cooperation."
   Why: on 2026-11-02 Aron found the public copy read like an internal plan (three doors, a layer diagram) and didn't say why any of it exists.
@@ -63,17 +63,19 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 Theme: `data-domain="building-blocks"`, amber.
 
 - Line: **Stop rediscovering what you need to build.**
-- Template is "like shadcn, but for the whole SaaS backend": you start from it and own the code. If a coding agent writes its own versions instead, Foundry points it back at the blocks.
+- Template is "like shadcn, but for the whole SaaS app": you start from it and own the code. It is the whole app (API, web, admin and superadmin apps, the UI package, jobs, auth, permissions), never "a backend" (Aron, 2026-11-02: "This thing is more than a backend."). If a coding agent writes its own versions instead, Foundry points it back at the blocks.
 - Show why each block is better, with specifics:
   - **json-rules:** one rule AST compiles to in-memory checks, Prisma queries and SQL WHERE. Rules are serializable, with type-safe operators, paths and binding.
   - **permissions:** RBAC + ABAC + ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. The core is about 1k lines.
   - **transitions:** declarative lifecycles on json-rules.
   - **rules-builder:** a headless builder that offers only what the engine can run.
   - **prisma-map**.
+- Two groups, with template on top consuming them (Aron, 2026-11-02):
+  - **The libraries**, in dependency order: json-rules → permissions → transitions → prisma-map → rules-builder.
+  - **Developer tooling:** atlas (a map of your code), gloss (explanations kept out of the source), config (the shared toolchain and theme).
   - **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
   - **gloss:** comment-free source with sidecar explanations.
   - **config:** the shared toolchain and theme.
-- Package order is dependency order: json-rules → permissions → transitions → prisma-map → atlas → rules-builder → config → gloss.
 
 ## Agentic
 
