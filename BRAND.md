@@ -55,6 +55,7 @@ Vary paragraph length. Put the most important item in a list where it reads as m
   3. **Governance is where it goes:** tools for people, and their agents, to cooperate. "Technology for cooperation."
   Why: on 2026-11-02 Aron found the public copy read like an internal plan (three doors, a layer diagram) and didn't say why any of it exists.
 - **No internal jargon in public copy (Aron, 2026-11-02).** Never "door(s)", "domain", "palette", "data-domain", "Layer 1 / Layer 2", and never "regions" or "chorus" without a plain explanation (say "Wardens are built from your docs, one per topic"). The theme notes below (`data-domain`, colours) are for builders, not readers. Use the plain section names: Building blocks, Agentic, Governance.
+- Never mention Tribe on any public surface (Aron, 2026-11-02).
 - People: **Contributors: Aron Greenspan.** Aron Greenspan only, for now (Aron, 2026-11-02: "No one else has really contributed."). Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
 - Mark: keep the current `<iXi>` exactly. The only allowed changes are outlining it to paths and a tighter favicon.
 
@@ -71,8 +72,8 @@ Theme: `data-domain="building-blocks"`, amber.
   - **rules-builder:** a headless builder that offers only what the engine can run.
   - **prisma-map**.
 - Two groups, with template on top consuming them (Aron, 2026-11-02):
-  - **The libraries**, in dependency order: json-rules → permissions → transitions → prisma-map → rules-builder.
-  - **Developer tooling:** atlas (a map of your code), gloss (explanations kept out of the source), config (the shared toolchain and theme).
+  - **The libraries**, in dependency order from the bottom up: prisma-map → json-rules → permissions → transitions → rules-builder (Aron, 2026-11-02). prisma-map is the core primitive json-rules and permissions read the schema through; transitions builds on permissions. The earlier order in this file was wrong and spread to every surface.
+  - **Developer tooling**, in this order: atlas (a map of your code), gloss (explanations kept out of the source), config (the shared toolchain and theme).
   - **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
   - **gloss:** comment-free source with sidecar explanations.
   - **config:** the shared toolchain and theme.
@@ -110,6 +111,7 @@ Prior work: Foundry is not the first system to turn corrections into lasting gui
 Theme: `data-domain="governance"`, violet.
 
 - The whitepaper and proposals. There is no tagline yet; use a plain description: "Designs for cooperation at scale."
+- **Planned: the Inixiative project** (Aron, 2026-11-02: "which we will be building, potentially"). A platform where a group pools money, tracks ownership with tokens, and releases funds only when participants agree a milestone was met. Each initiative governs itself; the marketplace (Space) it runs in can't change its rules, move funds or override votes. It started as governance software; managing money is the practical entry point because it forces real cooperation. First use case: cattle trusts in Uruguay and Argentina. Always mark it planned: nothing is built for users. Link the write-up at /proposals/platform/, never the private repo.
 - Long-form pages read in the light theme.
 
 ## Open source
