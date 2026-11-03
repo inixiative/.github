@@ -124,7 +124,7 @@ A `LensNarrowing` layer has a `root` (path-specific, from the anchor) and `mapDe
 
 ## Part II · The template
 
-A production SaaS foundation (`@inixiative/template`) that consumes the spine. Teams building a SaaS backend rebuild the same concerns on every product: auth, tenancy, permissions, side effects, background work, caching, real-time, audit. The template solves each *once*, names it, and reuses it. Each section opens with the problem that whole layer addresses; each entry is a **concept**, with its methods in a dim `API ·` row.
+A production SaaS foundation (`@inixiative/template`) that consumes the spine. Teams building a SaaS product rebuild the same concerns on every product: auth, tenancy, permissions, side effects, background work, caching, real-time, audit. The template solves each *once*, names it, and reuses it. Each section opens with the problem that whole layer addresses; each entry is a **concept**, with its methods in a dim `API ·` row.
 
 ### Core platform & build
 
