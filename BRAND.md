@@ -48,9 +48,26 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 ## inixiative
 
 - Line: **Technology for cooperation.**
-- Three doors, in this order: **Agentic** · **Building blocks** · **Governance**.
+- Three sections, in this order: **Building blocks** · **Agentic** · **Governance** (Aron, 2026-11-02): the building blocks are the base, the agentic tools help people and their agents use them, and governance (tools for cooperation) is the long-term goal. Never call them "doors" in public copy.
 - People: **Contributors: Aron Greenspan.** Aron Greenspan only, for now (Aron, 2026-11-02: "No one else has really contributed."). Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
 - Mark: keep the current `<iXi>` exactly. The only allowed changes are outlining it to paths and a tighter favicon.
+
+## Building blocks
+
+Theme: `data-domain="building-blocks"`, amber.
+
+- Line: **Stop rediscovering what you need to build.**
+- Template is "like shadcn, but for the whole SaaS backend": you start from it and own the code. To get your agent to use the blocks, use the agentic level.
+- Show why each block is better, with specifics:
+  - **json-rules:** one rule AST compiles to in-memory checks, Prisma queries and SQL WHERE. Rules are serializable, with type-safe operators, paths and binding.
+  - **permissions:** RBAC + ABAC + ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. The core is about 1k lines.
+  - **transitions:** declarative lifecycles on json-rules.
+  - **rules-builder:** a headless builder that offers only what the engine can run.
+  - **prisma-map**.
+  - **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
+  - **gloss:** comment-free source with sidecar explanations.
+  - **config:** the shared toolchain and theme.
+- Package order is dependency order: json-rules → permissions → transitions → prisma-map → atlas → rules-builder → config → gloss.
 
 ## Agentic
 
@@ -79,23 +96,6 @@ Theme: `data-domain="agentic"`, lime.
 - **bench** ("Do I Still Have a Job?"): our own challenge set for coding agents, staff to architect tiers. It is its own thing, not proof for Foundry. Its results are from June: show the date, and say more challenges are coming.
 
 Prior work: Foundry is not the first system to turn corrections into lasting guidance. Trace (arXiv 2606.13174) is the nearest prior work. State what is different; never claim "nobody else".
-
-## Building blocks
-
-Theme: `data-domain="building-blocks"`, amber.
-
-- Line: **Stop rediscovering what you need to build.**
-- Template is "like shadcn, but for the whole SaaS backend": you start from it and own the code. To get your agent to use the blocks, use the agentic level.
-- Show why each block is better, with specifics:
-  - **json-rules:** one rule AST compiles to in-memory checks, Prisma queries and SQL WHERE. Rules are serializable, with type-safe operators, paths and binding.
-  - **permissions:** RBAC + ABAC + ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. The core is about 1k lines.
-  - **transitions:** declarative lifecycles on json-rules.
-  - **rules-builder:** a headless builder that offers only what the engine can run.
-  - **prisma-map**.
-  - **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
-  - **gloss:** comment-free source with sidecar explanations.
-  - **config:** the shared toolchain and theme.
-- Package order is dependency order: json-rules → permissions → transitions → prisma-map → atlas → rules-builder → config → gloss.
 
 ## Governance
 
