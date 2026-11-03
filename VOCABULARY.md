@@ -2,18 +2,10 @@
 
 We build the inixiative packages to **"solve it once"**: each concern has one home, and new features use that home instead of working around it. This page is the glossary of every primitive, in four parts. The **building blocks** come first, in the order they stack: prisma-map supplies the field map, json-rules writes rules and lenses against it, permissions decides access with those rules, transitions guards state changes with json-rules and permissions, and rules-builder edits rules in your UI. **Developer experience** (atlas, gloss, config) helps the people and agents working in the code without changing what the code does. The **template** is a production SaaS app built on the building blocks. The **agentic** part covers Foundry, Kingdom and the pieces around them. Each entry names a **concept** (what it solves, how it works); the methods on that concept sit beneath it in a dim API row.
 
-```
-rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check / compile
-                                  │
-                                  ▼
-                         builders (headless UI)
-                                  │
-                                  ▼
-                    transitions · permissions  (downstream)
-                                  │
-                                  ▼
-                          the template (consumes all of it)
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="brand/vocabulary-map.svg">
+  <img src="brand/vocabulary-map-light.svg" width="100%" alt="How the libraries fit. prisma-map is the base: json-rules and permissions read its map. permissions is built on json-rules; transitions on json-rules and permissions; rules-builder on json-rules. template sits on top and uses prisma-map, json-rules, permissions, rules-builder, atlas and config, and moves onto transitions and gloss next. Developer experience beside them: atlas (uses json-rules), gloss, config (the toolchain under every package), and the worktrees, init and CI rules that come with template.">
+</picture>
 
 > Canonical source: [`inixiative/.github`](https://github.com/inixiative/.github/blob/main/VOCABULARY.md) · rendered at [www.inixiative.com/vocabulary](https://www.inixiative.com/vocabulary/)
 

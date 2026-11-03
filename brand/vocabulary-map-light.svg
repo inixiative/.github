@@ -1,0 +1,689 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="stack-map view-vocabulary" viewBox="-64 -54 1248 810" width="1248" height="810" role="img" aria-labelledby="vocabulary-map-light-title" aria-describedby="vocabulary-map-light-desc"><style>.stack-map{--background: 70 25% 96%;--foreground: 206 29% 7%;--app-primary: 84 69% 24%;--app-primary-foreground: 70 25% 97%;--app-secondary: 80 14% 91%;--app-secondary-foreground: 206 29% 10%;--app-tertiary: 211 72% 42%;--app-tertiary-foreground: 0 0% 100%;--app-quaternary: 318 45% 44%;--app-quaternary-foreground: 0 0% 100%;--app-accent: 80 14% 91%;--app-accent-foreground: 206 29% 10%;--success: 142 60% 30%;--warning: 32 90% 38%;--error: 6 72% 48%;--error-foreground: 0 0% 100%;--card: 0 0% 100%;--card-foreground: 206 29% 7%;--popover: 0 0% 100%;--popover-foreground: 206 29% 7%;--muted: 80 14% 93%;--muted-foreground: 199 8% 36%;--subtle-foreground: 199 7% 44%;--border: 87 12% 86%;--input: 87 12% 82%;--ring: 84 69% 30%;--shadow: 206 29% 7%;--radius: 0.75rem;--font-display: "Bricolage Grotesque", system-ui, sans-serif;--font-sans: "Instrument Sans", system-ui, sans-serif;--font-mono: "JetBrains Mono", ui-monospace, monospace;--agentic-primary: 84 69% 24%;--agentic-primary-foreground: 70 25% 97%;--agentic-secondary: 80 14% 91%;--agentic-secondary-foreground: 206 29% 10%;--agentic-tertiary: 211 72% 42%;--agentic-tertiary-foreground: 0 0% 100%;--agentic-quaternary: 318 45% 44%;--agentic-quaternary-foreground: 0 0% 100%;--agentic-ring: 84 69% 30%;--building-blocks-primary: 32 95% 30%;--building-blocks-primary-foreground: 70 25% 97%;--building-blocks-secondary: 36 20% 91%;--building-blocks-secondary-foreground: 206 29% 10%;--building-blocks-tertiary: 181 80% 24%;--building-blocks-tertiary-foreground: 0 0% 100%;--building-blocks-quaternary: 10 62% 42%;--building-blocks-quaternary-foreground: 0 0% 100%;--building-blocks-ring: 32 95% 30%;--governance-primary: 258 52% 48%;--governance-primary-foreground: 0 0% 100%;--governance-secondary: 255 18% 92%;--governance-secondary-foreground: 206 29% 10%;--governance-tertiary: 162 70% 24%;--governance-tertiary-foreground: 0 0% 100%;--governance-quaternary: 350 58% 42%;--governance-quaternary-foreground: 0 0% 100%;--governance-ring: 258 52% 48%;--inixiative-primary: 206 29% 7%;--inixiative-primary-foreground: 70 25% 97%;--inixiative-ring: 206 29% 7%;--font-display: system-ui, sans-serif; --font-body: system-ui, sans-serif; --duration-base: 0ms; --ease-standard: linear;}/*
+ * The map (src/components/StackMap.astro). Colours come from the theme's raw section tokens (domains.css), so a
+ * piece wears its section's colour on any page: amber building blocks, lime/blue/pink agentic (yours / shared /
+ * Signet, as in the products), violet governance. Developer experience is the theme's neutral slate
+ * (--muted-foreground), lighter than every section and no status colour. Closed products are charcoal.
+ */
+
+.stack-map {
+  --map-charcoal: 206 22% 16%;
+  --map-charcoal-ink: 96 17% 94%;
+  margin: 0;
+  display: grid;
+  gap: var(--gap-4);
+  position: relative;
+}
+.dark .stack-map {
+  --map-charcoal: 206 30% 4%;
+}
+
+.stack-map .tone-amber { --tone: var(--building-blocks-primary); }
+.stack-map .tone-lime { --tone: var(--agentic-primary); }
+.stack-map .tone-blue { --tone: var(--agentic-tertiary); }
+.stack-map .tone-pink { --tone: var(--agentic-quaternary); }
+.stack-map .tone-violet { --tone: var(--governance-primary); }
+.stack-map .tone-slate { --tone: var(--muted-foreground); }
+
+/* ---- Canvas -------------------------------------------------------------------------------- */
+
+.map-canvas {
+  position: relative;
+  border-radius: var(--radius-5);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(90% 60% at 50% 100%, hsl(var(--building-blocks-primary) / 0.07), transparent 70%),
+    radial-gradient(70% 55% at 50% 0%, hsl(var(--governance-primary) / 0.06), transparent 70%),
+    hsl(var(--card) / 0.5);
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+}
+.map-canvas::before {
+  /* the drafting grid, faded out at the edges */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(0deg, hsl(var(--foreground) / 0.035) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, hsl(var(--foreground) / 0.035) 0 1px, transparent 1px 32px);
+  -webkit-mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 40%, transparent 100%);
+}
+.map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--font-body);
+}
+.view-blocks .map-canvas,
+.view-vocabulary .map-canvas,
+.view-agentic .map-canvas {
+  padding: var(--gap-7) var(--gap-6);
+}
+
+/* The homepage: no frame, the drawing floats on the page. */
+.stack-map.is-hero .map-canvas {
+  background: none;
+  box-shadow: none;
+  overflow: visible;
+}
+.stack-map.is-hero .map-canvas::before {
+  inset: -10% -20%;
+  background:
+    repeating-linear-gradient(0deg, hsl(var(--foreground) / 0.03) 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(90deg, hsl(var(--foreground) / 0.03) 0 1px, transparent 1px 36px);
+}
+
+/* ---- Text ---------------------------------------------------------------------------------- */
+
+.map-svg text {
+  fill: hsl(var(--foreground));
+}
+.map-svg .name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.map-svg .name-big {
+  font-size: 22px;
+}
+.map-svg .name-small {
+  font-size: 13px;
+}
+.map-svg .name-chip {
+  font-size: 13px;
+}
+.map-svg .name-chip.name-big {
+  font-size: 15px;
+}
+.map-svg .line {
+  font-size: 13px;
+  fill: hsl(var(--muted-foreground));
+}
+.map-svg .line-chip {
+  font-size: 11px;
+}
+.map-svg .flag {
+  font-size: 10.5px;
+  font-weight: 600;
+  fill: hsl(var(--muted-foreground));
+}
+.map-svg .flag-plate {
+  fill: none;
+  stroke: hsl(var(--border));
+}
+.map-svg .is-progress .flag { fill: hsl(var(--warning)); }
+.map-svg .is-progress .flag-plate { stroke: hsl(var(--warning) / 0.6); }
+.map-svg .group-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 650;
+  fill: hsl(var(--tone, var(--muted-foreground)));
+}
+.map-svg .micro-label {
+  font-size: 11.5px;
+  fill: hsl(var(--subtle-foreground));
+}
+.map-svg .tier-label {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  fill: hsl(var(--tone));
+}
+.map-svg .tier-line {
+  font-size: 12px;
+  fill: hsl(var(--muted-foreground));
+}
+
+/* ---- Plates (the whole picture) -------------------------------------------------------------- */
+
+.map-svg .plate-top {
+  fill: hsl(var(--tone) / 0.07);
+  stroke: hsl(var(--tone) / 0.4);
+  stroke-width: 1;
+}
+.map-svg .plate-left { fill: hsl(var(--tone) / 0.2); }
+.map-svg .plate-right { fill: hsl(var(--tone) / 0.12); }
+.map-svg .plate-grid {
+  fill: none;
+  stroke: hsl(var(--tone) / 0.11);
+  stroke-width: 1;
+}
+.map-svg .plate-rim {
+  fill: none;
+  stroke: hsl(var(--tone) / 0.9);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 5px hsl(var(--tone) / 0.55));
+}
+.map-svg .face-shelf.plate-top { fill: hsl(var(--tone) / 0.09); stroke: hsl(var(--tone) / 0.7); }
+.map-svg .face-shelf.plate-rim { stroke-width: 2; filter: drop-shadow(0 0 8px hsl(var(--tone) / 0.7)); }
+.map-svg .face-shelf.plate-grid { stroke: hsl(var(--tone) / 0.07); }
+.map-svg .face-shelf.plate-left { fill: hsl(var(--tone) / 0.45); }
+.map-svg .face-shelf.plate-right { fill: hsl(var(--tone) / 0.3); }
+.map-svg .node.is-focus .face-shelf.plate-rim,
+.map-svg .node:focus-visible .face-shelf.plate-rim { stroke-width: 2.5; }
+.map-svg .plate-light.plate-top { fill: hsl(var(--tone) / 0.04); stroke: hsl(var(--tone) / 0.3); }
+.map-svg .plate-light.plate-rim { stroke: hsl(var(--tone) / 0.55); filter: none; }
+.map-svg .plate-light.plate-left { fill: hsl(var(--tone) / 0.1); }
+.map-svg .plate-light.plate-right { fill: hsl(var(--tone) / 0.06); }
+
+/* ---- Zones (the elevation views) ----------------------------------------------------------- */
+
+.map-svg .zone {
+  fill: hsl(var(--tone, var(--foreground)) / 0.035);
+  stroke: hsl(var(--tone, var(--foreground)) / 0.2);
+  stroke-width: 1;
+}
+.map-svg .cluster {
+  fill: hsl(var(--muted-foreground) / 0.05);
+  stroke: hsl(var(--muted-foreground) / 0.35);
+  stroke-dasharray: 3 4;
+}
+.map-svg .zone-libraries { --tone: var(--building-blocks-primary); }
+.map-svg .zone-tooling { --tone: var(--muted-foreground); stroke-dasharray: 4 5; }
+.map-svg .zone-machine { --tone: var(--agentic-primary); }
+.map-svg .zone-measure { --tone: var(--muted-foreground); stroke-dasharray: 4 5; }
+.map-svg .zone-outside { --tone: var(--agentic-tertiary); }
+.map-svg .zone-blocks { --tone: var(--muted-foreground); stroke-dasharray: 4 5; }
+
+/* ---- Nodes ---------------------------------------------------------------------------------- */
+
+.map-svg .node {
+  cursor: pointer;
+  outline: none;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+.map-svg .face-front,
+.map-svg .face-top,
+.map-svg .face-side {
+  stroke: hsl(var(--tone) / 0.6);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  transition: fill var(--duration-base) var(--ease-standard), stroke var(--duration-base) var(--ease-standard);
+}
+.map-svg .face-front { fill: hsl(var(--tone) / 0.13); }
+.map-svg .face-base { fill: hsl(var(--card)); stroke: none; }
+.map-svg .is-planned .face-base { fill: hsl(var(--card) / 0.6); }
+.map-svg .face-top { fill: hsl(var(--tone) / 0.34); }
+.map-svg .face-side { fill: hsl(var(--tone) / 0.22); }
+.map-svg rect.face-front { fill: hsl(var(--card)); }
+.map-svg .node:not(.is-closed):not(.is-planned) rect.face-front {
+  fill: hsl(var(--tone) / 0.1);
+}
+.map-svg .is-template rect.face-front { fill: hsl(var(--tone) / 0.16); }
+.map-svg .is-template .face-top { fill: hsl(var(--tone) / 0.5); }
+
+.map-svg .chip {
+  fill: hsl(var(--card));
+  stroke: hsl(var(--tone) / 0.55);
+  stroke-width: 1;
+}
+.map-svg .leader {
+  stroke: hsl(var(--tone) / 0.55);
+  stroke-width: 1;
+  fill: none;
+}
+.map-svg .progress-dot { fill: hsl(var(--warning)); }
+
+/* Closed: charcoal, set apart from the open, tinted pieces. */
+.map-svg .is-closed { --tone: var(--muted-foreground); }
+.map-svg .is-closed .face-front,
+.map-svg .is-closed .face-side,
+.map-svg .is-closed .chip {
+  fill: hsl(var(--map-charcoal));
+  stroke: hsl(var(--foreground) / 0.45);
+}
+.map-svg .is-closed .face-top { fill: hsl(var(--foreground) / 0.16); stroke: hsl(var(--foreground) / 0.45); }
+.map-svg .is-closed text { fill: hsl(var(--map-charcoal-ink)); }
+.map-svg .is-closed .line { fill: hsl(var(--map-charcoal-ink) / 0.7); }
+.map-svg .is-closed .flag { fill: hsl(var(--map-charcoal-ink) / 0.7); }
+.map-svg .is-closed .flag-plate { stroke: hsl(var(--map-charcoal-ink) / 0.3); }
+.map-svg .crest { color: hsl(var(--agentic-primary)); }
+.map-svg:not(:is(.dark *)) .crest { color: hsl(var(--map-charcoal-ink)); }
+
+/* Planned: a ghost. */
+.map-svg .is-planned .face-front,
+.map-svg .is-planned .face-top,
+.map-svg .is-planned .face-side,
+.map-svg .is-planned .chip,
+.map-svg .is-planned .leader {
+  fill: hsl(var(--background) / 0.4);
+  stroke: hsl(var(--tone) / 0.7);
+  stroke-dasharray: 4 4;
+}
+.map-svg .is-planned text { fill: hsl(var(--muted-foreground)); }
+
+/* Focus and hover: the piece, its upstream and downstream; everything else steps back. */
+.stack-map[data-active] .map-svg .node:not(.is-lit) { opacity: 0.22; }
+.stack-map[data-active] .map-svg .edge:not(.is-lit) { opacity: 0.08; }
+.stack-map[data-active] .map-svg .pulse { opacity: 0; }
+.map-svg .node.is-focus .face-front,
+.map-svg .node.is-focus .face-top,
+.map-svg .node.is-focus .chip {
+  stroke: hsl(var(--tone));
+  stroke-width: 1.75;
+}
+.map-svg .node:focus-visible .face-front,
+.map-svg .node:focus-visible .chip {
+  stroke: hsl(var(--ring));
+  stroke-width: 2.5;
+}
+
+/* ---- Edges ---------------------------------------------------------------------------------- */
+
+.map-svg .edge {
+  fill: none;
+  stroke: hsl(var(--foreground) / 0.34);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity var(--duration-base) var(--ease-standard), stroke var(--duration-base) var(--ease-standard),
+    stroke-width var(--duration-base) var(--ease-standard);
+}
+.view-blocks .map-svg .edge,
+.view-vocabulary .map-svg .edge,
+.view-whole .map-svg .edge.kind-uses {
+  stroke: hsl(var(--building-blocks-primary) / 0.6);
+}
+.map-svg .edge.kind-runs { stroke: hsl(var(--agentic-primary) / 0.6); }
+.map-svg .edge.is-signet {
+  stroke: hsl(var(--agentic-quaternary) / 0.85);
+  stroke-width: 2.25;
+}
+.map-svg .edge.is-next { stroke-dasharray: 6 6; }
+.map-svg .edge.is-structural {
+  stroke: hsl(var(--muted-foreground) / 0.85);
+  stroke-dasharray: 0.5 6;
+  stroke-width: 2.5;
+}
+.view-whole .map-svg .edge.is-cross[data-user="template"] {
+  stroke: hsl(var(--building-blocks-primary) / 0.75);
+  stroke-width: 1.5;
+}
+.view-whole .map-svg .edge.is-cross:not([data-user="template"]) {
+  stroke: hsl(var(--foreground) / 0.24);
+  stroke-width: 1.25;
+}
+.map-svg .edge.is-lit {
+  stroke-width: 2.5;
+  opacity: 1;
+}
+.map-svg .edge.kind-uses.is-lit:not(.is-structural) { stroke: hsl(var(--building-blocks-primary)); }
+.map-svg .edge.kind-runs.is-lit:not(.is-signet) { stroke: hsl(var(--agentic-primary)); }
+.map-svg .edge.is-signet.is-lit { stroke: hsl(var(--agentic-quaternary)); }
+.map-svg .edge.is-unseen { display: none; }
+.map-svg .pulse {
+  fill: none;
+  stroke: hsl(var(--agentic-quaternary));
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 0.04 0.96;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 4px hsl(var(--agentic-quaternary) / 0.9));
+}
+
+/* Agentic: two ways to read the same pieces. */
+.view-agentic[data-mode="runs"] .map-svg .edge.kind-uses,
+.view-agentic[data-mode="uses"] .map-svg .edge.kind-runs,
+.view-agentic[data-mode="uses"] .map-svg .pulse {
+  display: none;
+}
+.view-agentic[data-mode="runs"] .map-svg .node:is([data-tier="building-blocks"], [data-tier="developer-experience"]) {
+  opacity: 0.45;
+}
+.map-modes {
+  display: inline-flex;
+  justify-self: start;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 1px hsl(var(--border));
+  background: hsl(var(--card));
+}
+.map-modes button {
+  border: 0;
+  border-radius: var(--radius-pill);
+  padding: var(--gap-2) var(--gap-4);
+  font: inherit;
+  font-size: var(--text-small);
+  color: hsl(var(--muted-foreground));
+  background: none;
+  cursor: pointer;
+}
+.map-modes button[aria-pressed="true"] {
+  color: hsl(var(--app-primary-foreground));
+  background: hsl(var(--app-primary));
+}
+.map-modes button:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ---- Under the drawing ------------------------------------------------------------------- */
+
+.map-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-3) var(--gap-6);
+}
+.map-readout {
+  margin: 0;
+  flex: 1 1 22rem;
+  min-height: 3em;
+  font-size: var(--text-small);
+  color: hsl(var(--muted-foreground));
+}
+.stack-map[data-active] .map-readout { color: hsl(var(--foreground)); }
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-2) var(--gap-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-caption);
+  color: hsl(var(--muted-foreground));
+}
+.map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-2);
+}
+.map-legend li::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+}
+.map-legend .key-open::before {
+  background: hsl(var(--agentic-primary) / 0.25);
+  box-shadow: inset 0 0 0 1px hsl(var(--agentic-primary) / 0.7);
+}
+.map-legend .key-closed::before {
+  background: hsl(var(--map-charcoal));
+  box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.45);
+}
+.map-legend .key-planned::before {
+  border: 1px dashed hsl(var(--muted-foreground));
+}
+.map-legend .key-progress::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--warning));
+}
+.map-legend :is(.key-signet, .key-runs, .key-uses, .key-next, .key-structural)::before {
+  width: 22px;
+  height: 0;
+  border-radius: 0;
+  border-top: 2px solid;
+}
+.map-legend .key-signet::before { border-color: hsl(var(--agentic-quaternary)); }
+.map-legend .key-runs::before { border-color: hsl(var(--agentic-primary)); }
+.map-legend .key-uses::before { border-color: hsl(var(--building-blocks-primary)); }
+.map-legend .key-next::before { border-top-style: dashed; border-color: hsl(var(--building-blocks-primary)); }
+.map-legend .key-structural::before { border-top: 3px dotted hsl(var(--muted-foreground)); }
+
+.map-text {
+  font-size: var(--text-small);
+  color: hsl(var(--muted-foreground));
+}
+.map-text summary {
+  cursor: pointer;
+  width: max-content;
+  color: hsl(var(--muted-foreground));
+}
+.map-text summary:hover { color: hsl(var(--foreground)); }
+.map-text ul {
+  margin: var(--gap-3) 0 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: var(--gap-2);
+  max-width: var(--measure);
+}
+.map-text strong { color: hsl(var(--foreground)); font-weight: var(--weight-strong); }
+
+.view-vocabulary { max-width: 64rem; }
+
+/* ---- Small screens: a stack of slabs -------------------------------------------------------- */
+
+.map-stacked { display: none; }
+
+@media (max-width: 760px) {
+  .map-canvas,
+  .map-foot,
+  .map-modes { display: none; }
+  .map-stacked {
+    display: grid;
+    gap: var(--gap-5);
+  }
+  .slab {
+    position: relative;
+    padding: var(--gap-4) var(--gap-4) var(--gap-5);
+    border-radius: var(--radius-3);
+    background:
+      repeating-linear-gradient(90deg, hsl(var(--tone) / 0.06) 0 1px, transparent 1px 24px),
+      linear-gradient(hsl(var(--tone) / 0.1), hsl(var(--tone) / 0.03));
+    box-shadow:
+      inset 0 1px 0 hsl(var(--tone) / 0.9),
+      inset 0 0 0 1px hsl(var(--tone) / 0.3),
+      0 6px 0 -1px hsl(var(--tone) / 0.22),
+      0 18px 30px -18px hsl(var(--shadow, 0 0% 0%) / 0.6);
+  }
+  .slab header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--gap-1) var(--gap-3);
+    margin-bottom: var(--gap-3);
+  }
+  .slab-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--text-heading-3);
+    color: hsl(var(--tone));
+  }
+  .slab-note {
+    font-size: var(--text-caption);
+    color: hsl(var(--muted-foreground));
+  }
+  .slab ul {
+    display: grid;
+    gap: var(--gap-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .slab li {
+    display: grid;
+    gap: 2px;
+    padding: var(--gap-2) var(--gap-3);
+    border-radius: var(--radius-2);
+    background: hsl(var(--card) / 0.85);
+    box-shadow: inset 0 0 0 1px hsl(var(--tone) / 0.35);
+  }
+  .slab li > :first-child {
+    font-family: var(--font-display);
+    font-weight: 650;
+    color: hsl(var(--foreground));
+  }
+  .slab li.is-closed { background: hsl(var(--map-charcoal)); box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.35); }
+  .slab li.is-closed > * { color: hsl(var(--map-charcoal-ink)); }
+  .slab li.is-planned { background: none; box-shadow: none; border: 1px dashed hsl(var(--tone) / 0.6); }
+  .slab li.is-progress > :first-child::after {
+    content: "in progress";
+    margin-left: var(--gap-2);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: var(--text-micro);
+    color: hsl(var(--warning));
+  }
+  .slab li.is-planned > :first-child::after {
+    content: "planned";
+    margin-left: var(--gap-2);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: var(--text-micro);
+    color: hsl(var(--muted-foreground));
+  }
+  .slab li.is-template { box-shadow: inset 0 0 0 1px hsl(var(--tone) / 0.7); background: hsl(var(--tone) / 0.12); }
+  .slab-line,
+  .slab-on {
+    font-size: var(--text-caption);
+    color: hsl(var(--muted-foreground));
+  }
+  .slab-on { color: hsl(var(--subtle-foreground)); }
+  .slab li.tone-pink { box-shadow: inset 0 0 0 1px hsl(var(--agentic-quaternary) / 0.55); }
+  /* The homepage keeps the drawing as a small picture above the slabs, and lists names only. */
+  .view-whole .map-canvas {
+    display: block;
+    margin: 0 calc(var(--gutter) * -0.5);
+  }
+  .view-whole .map-svg .chip,
+  .view-whole .map-svg text,
+  .view-whole .map-svg .leader,
+  .view-whole .map-svg .crest,
+  .view-whole .map-svg .progress-dot { display: none; }
+  .view-whole .slab ul {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .view-whole .slab li { padding: var(--gap-1) var(--gap-3); }
+  .view-whole .slab-line,
+  .view-whole .slab-on { display: none; }
+  .slab-join {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--gap-5) * -1 - 2px);
+    width: 2px;
+    height: calc(var(--gap-5) + 4px);
+    background: linear-gradient(hsl(var(--tone) / 0.6), transparent);
+  }
+}
+
+/* ---- One orchestrated arrival: plates settle from the base up, then edges draw. ------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .view-whole .map-svg .layer {
+    animation: map-settle 900ms var(--ease-standard) both;
+  }
+  .view-whole .map-svg .layer[data-tier="building-blocks"] { animation-delay: 80ms; }
+  .view-whole .map-svg .layer[data-tier="developer-experience"] { animation-delay: 260ms; }
+  .view-whole .map-svg .layer[data-tier="agentic"] { animation-delay: 380ms; }
+  .view-whole .map-svg .layer[data-tier="governance"] { animation-delay: 560ms; }
+  .view-whole .map-svg .layer.edges { animation: none; }
+
+  .view-whole .map-svg .edge[pathLength] {
+    stroke-dasharray: 1;
+    animation: map-draw 1100ms var(--ease-move) both;
+    animation-delay: calc(700ms + var(--i) * 18ms);
+  }
+  .view-whole .map-svg .edge.is-next,
+  .view-whole .map-svg .edge.is-structural {
+    animation: map-fade 700ms var(--ease-standard) both;
+    animation-delay: calc(900ms + var(--i) * 18ms);
+  }
+  .map-svg .pulse {
+    animation: map-pulse 5.5s linear infinite;
+    animation-delay: calc(2400ms + var(--i) * 230ms);
+  }
+}
+
+@keyframes map-settle {
+  from { opacity: 0; transform: translateY(26px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes map-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes map-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes map-pulse {
+  0% { stroke-dashoffset: 1; opacity: 0; }
+  8% { opacity: 1; }
+  55% { stroke-dashoffset: 0.04; opacity: 1; }
+  62%, 100% { stroke-dashoffset: 0.04; opacity: 0; }
+}
+
+/* ---- Marks on the blocks' top faces -------------------------------------------------------- */
+
+.map-svg .glyph {
+  fill: none;
+  stroke: hsl(var(--tone));
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.95;
+}
+.map-svg .is-closed .glyph { stroke: hsl(var(--map-charcoal-ink) / 0.85); }
+.map-svg .is-planned .glyph { opacity: 0.5; }
+.map-svg .glyph-crest { stroke: hsl(var(--agentic-primary)); stroke-width: 1.6; }
+
+/* Kingdom is the keep: the one lit block. */
+.map-svg .is-focal .face-top { fill: hsl(var(--foreground) / 0.1); }
+.map-svg .is-focal :is(.face-front, .face-side, .face-top) {
+  stroke: hsl(var(--agentic-primary) / 0.85);
+}
+.map-svg .is-focal .face-front {
+  filter: drop-shadow(0 0 14px hsl(var(--agentic-primary) / 0.35));
+}
+.map-svg .is-focal .chip { stroke: hsl(var(--agentic-primary) / 0.7); }
+
+/* The template shelf's posts stay quiet; the shelf carries the idea. */
+.view-whole .map-svg .edge.is-cross[data-user="template"]:not(.is-lit) { opacity: 0.45; }
+.view-whole .map-svg .edge.is-signet { stroke-width: 2.75; filter: drop-shadow(0 0 4px hsl(var(--agentic-quaternary) / 0.6)); }
+.map-svg .micro-strong { fill: hsl(var(--muted-foreground)); font-weight: 600; }
+
+/* Light pages (the vocabulary): stronger edges and faces on a pale ground. */
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg .edge { stroke-width: 1.75; }
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg .edge.kind-uses:not(.is-structural) { stroke: hsl(var(--building-blocks-primary) / 0.85); }
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg .edge.is-structural { stroke: hsl(var(--foreground) / 0.55); }
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg :is(.face-front, .face-top, .face-side) { stroke: hsl(var(--tone) / 0.95); }
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg .face-side { fill: hsl(var(--tone) / 0.42); }
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg .face-top { fill: hsl(var(--tone) / 0.5); }
+.stack-map:not(:is(.dark *)):not(.dark) .map-svg .zone { stroke: hsl(var(--tone, var(--foreground)) / 0.35); }
+
+@media (max-width: 760px) {
+  /* The small picture keeps its tier names. */
+  .view-whole .map-svg :is(.tier-label, .tier-line) { display: inline; }
+  .view-whole .map-svg .tier-label { font-size: 30px; }
+  .view-whole .map-svg .tier-line { display: none; }
+}
+
+/* The elevation views stand on the page like a model on a table: a slight tilt back, and a floor shadow. */
+@media (min-width: 761px) {
+  .view-blocks .map-canvas,
+  .view-vocabulary .map-canvas,
+  .view-agentic .map-canvas {
+    perspective: 1600px;
+    perspective-origin: 50% 0%;
+  }
+  .view-blocks .map-svg,
+  .view-vocabulary .map-svg,
+  .view-agentic .map-svg {
+    transform: rotateX(16deg);
+    transform-origin: 50% 100%;
+    filter: drop-shadow(0 24px 22px hsl(var(--shadow, 0 0% 0%) / 0.45));
+  }
+}
+
+/* A section page's picture: its own part of the stack lit, the rest stepped back. */
+.stack-map[data-focus="building-blocks"] .map-svg .layer:is([data-tier="agentic"], [data-tier="governance"]) > *,
+.stack-map[data-focus="agentic"] .map-svg .layer:is([data-tier="building-blocks"], [data-tier="developer-experience"], [data-tier="governance"]) > * {
+  opacity: 0.3;
+}
+.stack-map.is-focused { max-width: 58rem; margin-inline: auto; }
+.stack-map.is-focused .map-canvas { padding: var(--gap-6) var(--gap-5); }
+</style><rect x="-64" y="-54" width="1248" height="810" rx="16" style="fill:hsl(var(--background))"/><svg x="-40" y="-30" class="map-svg " viewBox="-40 -30 1200 762" width="1200" height="762" role="group" aria-labelledby="vocabulary-map-light-title" aria-describedby="vocabulary-map-light-desc"><title id="vocabulary-map-light-title">How the libraries fit</title><desc id="vocabulary-map-light-desc">prisma-map is the base: json-rules and permissions read its map. permissions is built on json-rules. transitions is built on json-rules and permissions. rules-builder is built on json-rules. Developer experience: atlas (uses json-rules), gloss, config (the toolchain under every package), and the worktrees, init and CI rules that come with template. template uses prisma-map, json-rules, permissions, rules-builder, atlas and config, and moves onto transitions and gloss next.</desc><g class="layer backdrop"><rect class="zone zone-libraries" x="-18" y="132" width="770" height="480" rx="14"/><rect class="zone zone-tooling" x="816" y="254" width="322" height="358" rx="14"/><rect class="cluster" x="836" y="526" width="236" height="68" rx="8"/><text class="group-label tone-amber" x="-2" y="626">The libraries</text><text class="group-label tone-slate" x="834" y="626">Developer experience</text><text class="micro-label" x="846" y="541">Comes with template</text></g><g class="layer edges"><path class="edge kind-uses is-structural" data-base="prisma-map" data-user="json-rules" data-kind="uses" style="--i:1" d="M 420 528 L 420 468"><title>json-rules reads the field map prisma-map produces</title></path><path class="edge kind-uses is-structural" data-base="prisma-map" data-user="permissions" data-kind="uses" style="--i:2" d="M 52 528 L 52.0 386.0 Q 52 376 62.0 376.0 L 140.0 376.0 Q 150 376 150.0 366.0 L 150 346"><title>permissions walks your data through the map prisma-map produces</title></path><path class="edge kind-uses" data-base="json-rules" data-user="permissions" data-kind="uses" style="--i:3" d="M 266 406 L 266 346" pathLength="1"><title>permission rules are json-rules</title></path><path class="edge kind-uses" data-base="json-rules" data-user="rules-builder" data-kind="uses" style="--i:4" d="M 596 406 L 596 346" pathLength="1"><title>rules-builder builds json-rules conditions</title></path><path class="edge kind-uses" data-base="json-rules" data-user="transitions" data-kind="uses" style="--i:5" d="M 422 406 L 422.0 203.0 Q 422 193 412.0 193.0 L 396 193" pathLength="1"><title>transition guards are json-rules</title></path><path class="edge kind-uses" data-base="permissions" data-user="transitions" data-kind="uses" style="--i:6" d="M 282 284 L 282 224" pathLength="1"><title>a transition is checked by permissions</title></path><path class="edge kind-uses" data-base="json-rules" data-user="atlas" data-kind="uses" style="--i:7" d="M 686 406 L 686.0 386.0 Q 686 376 696.0 376.0 L 880.0 376.0 Q 890 376 890.0 366.0 L 890 346" pathLength="1"><title>atlas checks its annotations with json-rules</title></path><path class="edge kind-uses" data-base="prisma-map" data-user="template" data-kind="uses" style="--i:8" d="M 22 528 L 22 102" pathLength="1"><title>template uses prisma-map</title></path><path class="edge kind-uses" data-base="permissions" data-user="template" data-kind="uses" style="--i:9" d="M 122 284 L 122 102" pathLength="1"><title>template uses permissions</title></path><path class="edge kind-uses is-next" data-base="transitions" data-user="template" data-kind="uses" style="--i:10" d="M 276 162 L 276 102"><title>template moves onto transitions next</title></path><path class="edge kind-uses" data-base="json-rules" data-user="template" data-kind="uses" style="--i:11" d="M 448 406 L 448 102" pathLength="1"><title>template uses json-rules</title></path><path class="edge kind-uses" data-base="rules-builder" data-user="template" data-kind="uses" style="--i:12" d="M 606 284 L 606 102" pathLength="1"><title>template uses rules-builder</title></path><path class="edge kind-uses" data-base="atlas" data-user="template" data-kind="uses" style="--i:13" d="M 942 284 L 942 102" pathLength="1"><title>template uses atlas</title></path><path class="edge kind-uses is-next" data-base="gloss" data-user="template" data-kind="uses" style="--i:14" d="M 1072 437 L 1084.0 437.0 Q 1094 437 1094.0 427.0 L 1094 102"><title>template adopts gloss next</title></path><path class="edge kind-uses" data-base="worktrees" data-user="template" data-kind="uses" style="--i:15" d="M 1062 526 L 1062.0 514.0 Q 1062 506 1070.0 506.0 L 1106.0 506.0 Q 1114 506 1114.0 498.0 L 1114 102" pathLength="1"><title>worktrees comes with template</title></path><path class="edge kind-uses" data-base="init" data-user="template" data-kind="uses" style="--i:16" d="M 1062 526 L 1062.0 514.0 Q 1062 506 1070.0 506.0 L 1106.0 506.0 Q 1114 506 1114.0 498.0 L 1114 102" pathLength="1"><title>init comes with template</title></path><path class="edge kind-uses" data-base="ci-rules" data-user="template" data-kind="uses" style="--i:17" d="M 1062 526 L 1062.0 514.0 Q 1062 506 1070.0 506.0 L 1106.0 506.0 Q 1114 506 1114.0 498.0 L 1114 102" pathLength="1"><title>CI rules comes with template</title></path><path class="edge kind-uses is-unseen" data-base="config" data-user="prisma-map" data-kind="uses" style="--i:18"/><path class="edge kind-uses is-unseen" data-base="config" data-user="json-rules" data-kind="uses" style="--i:19"/><path class="edge kind-uses is-unseen" data-base="config" data-user="permissions" data-kind="uses" style="--i:20"/><path class="edge kind-uses is-unseen" data-base="config" data-user="transitions" data-kind="uses" style="--i:21"/><path class="edge kind-uses is-unseen" data-base="config" data-user="rules-builder" data-kind="uses" style="--i:22"/><path class="edge kind-uses is-unseen" data-base="config" data-user="atlas" data-kind="uses" style="--i:23"/><path class="edge kind-uses is-unseen" data-base="config" data-user="gloss" data-kind="uses" style="--i:24"/><path class="edge kind-uses is-unseen" data-base="config" data-user="template" data-kind="uses" style="--i:25"/></g><g class="layer nodes" data-tier="building-blocks"><a class="node tone-amber" data-id="prisma-map" data-tier="building-blocks" aria-label="prisma-map: Your Prisma schema, readable at runtime. Built on config. Used by json-rules, permissions, template." style="--i:26" href="#content"><polygon class="face-top" points="0,528 13,519 733,519 720,528"/><polygon class="face-side" points="720,528 733,519 733,581 720,590"/><rect class="face-base" x="0" y="528" width="720" height="62" rx="2"/><rect class="face-front" x="0" y="528" width="720" height="62" rx="2"/><text class="name" x="16" y="556">prisma-map</text><text class="line" x="16" y="574">The schema the stack is written against</text></a><a class="node tone-amber" data-id="json-rules" data-tier="building-blocks" aria-label="json-rules: One rule that runs in memory, in Prisma and in SQL. Built on prisma-map, config. Used by permissions, transitions, rules-builder, atlas, template." style="--i:27" href="#content"><polygon class="face-top" points="96,406 109,397 733,397 720,406"/><polygon class="face-side" points="720,406 733,397 733,459 720,468"/><rect class="face-base" x="96" y="406" width="624" height="62" rx="2"/><rect class="face-front" x="96" y="406" width="624" height="62" rx="2"/><text class="name" x="112" y="434">json-rules</text><text class="line" x="112" y="452">Rule logic, lenses and sources; check, or compile to Prisma and SQL</text></a><a class="node tone-amber" data-id="permissions" data-tier="building-blocks" aria-label="permissions: RBAC, ABAC and ReBAC on your own records. Built on prisma-map, json-rules, config. Used by transitions, template." style="--i:28" href="#content"><polygon class="face-top" points="96,284 109,275 409,275 396,284"/><polygon class="face-side" points="396,284 409,275 409,337 396,346"/><rect class="face-base" x="96" y="284" width="300" height="62" rx="2"/><rect class="face-front" x="96" y="284" width="300" height="62" rx="2"/><text class="name" x="112" y="312">permissions</text><text class="line" x="112" y="330">Who can do what, decided with json-rules</text></a><a class="node tone-amber" data-id="transitions" data-tier="building-blocks" aria-label="transitions: Declarative lifecycles. Built on json-rules, permissions, config. Used by template." style="--i:29" href="#content"><polygon class="face-top" points="156,162 169,153 409,153 396,162"/><polygon class="face-side" points="396,162 409,153 409,215 396,224"/><rect class="face-base" x="156" y="162" width="240" height="62" rx="2"/><rect class="face-front" x="156" y="162" width="240" height="62" rx="2"/><text class="name" x="172" y="190">transitions</text><text class="line" x="172" y="208">On json-rules and permissions</text></a><a class="node tone-amber" data-id="rules-builder" data-tier="building-blocks" aria-label="rules-builder: A headless rule builder. Built on json-rules, config. Used by template." style="--i:30" href="#content"><polygon class="face-top" points="476,284 489,275 733,275 720,284"/><polygon class="face-side" points="720,284 733,275 733,337 720,346"/><rect class="face-base" x="476" y="284" width="244" height="62" rx="2"/><rect class="face-front" x="476" y="284" width="244" height="62" rx="2"/><text class="name" x="492" y="312">rules-builder</text><text class="line" x="492" y="330">Headless builders on the lens</text></a><a class="node tone-slate" data-id="atlas" data-tier="building-blocks" aria-label="atlas: A map of your code. Built on json-rules, config. Used by template." style="--i:31" href="#content"><polygon class="face-top" points="836,284 849,275 1085,275 1072,284"/><polygon class="face-side" points="1072,284 1085,275 1085,337 1072,346"/><rect class="face-base" x="836" y="284" width="236" height="62" rx="2"/><rect class="face-front" x="836" y="284" width="236" height="62" rx="2"/><text class="name" x="852" y="312">atlas</text><text class="line" x="852" y="330">A map of your code</text></a><a class="node tone-slate" data-id="gloss" data-tier="building-blocks" aria-label="gloss: Explanations kept out of the source. Built on config. Used by template." style="--i:32" href="#content"><polygon class="face-top" points="836,406 849,397 1085,397 1072,406"/><polygon class="face-side" points="1072,406 1085,397 1085,459 1072,468"/><rect class="face-base" x="836" y="406" width="236" height="62" rx="2"/><rect class="face-front" x="836" y="406" width="236" height="62" rx="2"/><text class="name" x="852" y="434">gloss</text><text class="line" x="852" y="452">Explanations kept out of the source</text></a><a class="node tone-slate" data-id="worktrees" data-tier="building-blocks" aria-label="worktrees: A worktree per task, with its own database and ports. Used by template." style="--i:33" href="#content"><polygon class="face-top" points="846,558 859,549 941,549 928,558"/><polygon class="face-side" points="928,558 941,549 941,581 928,590"/><rect class="face-base" x="846" y="558" width="82" height="32" rx="2"/><rect class="face-front" x="846" y="558" width="82" height="32" rx="2"/><text class="name name-small" x="887" y="578" text-anchor="middle">worktrees</text></a><a class="node tone-slate" data-id="init" data-tier="building-blocks" aria-label="init: Sets up hosting, database and secrets for a new project. Used by template." style="--i:34" href="#content"><polygon class="face-top" points="940,558 953,549 1005,549 992,558"/><polygon class="face-side" points="992,558 1005,549 1005,581 992,590"/><rect class="face-base" x="940" y="558" width="52" height="32" rx="2"/><rect class="face-front" x="940" y="558" width="52" height="32" rx="2"/><text class="name name-small" x="966" y="578" text-anchor="middle">init</text></a><a class="node tone-slate" data-id="ci-rules" data-tier="building-blocks" aria-label="CI rules: Checks that hold the codebase to its own conventions. Used by template." style="--i:35" href="#content"><polygon class="face-top" points="1004,558 1017,549 1081,549 1068,558"/><polygon class="face-side" points="1068,558 1081,549 1081,581 1068,590"/><rect class="face-base" x="1004" y="558" width="64" height="32" rx="2"/><rect class="face-front" x="1004" y="558" width="64" height="32" rx="2"/><text class="name name-small" x="1036" y="578" text-anchor="middle">CI rules</text></a><a class="node tone-slate" data-id="config" data-tier="building-blocks" aria-label="config: The shared toolchain and theme. Used by template, prisma-map, json-rules, permissions, transitions, rules-builder, atlas, gloss." style="--i:36" href="#content"><polygon class="face-top" points="0,646 13,637 1085,637 1072,646"/><polygon class="face-side" points="1072,646 1085,637 1085,683 1072,692"/><rect class="face-base" x="0" y="646" width="1072" height="46" rx="2"/><rect class="face-front" x="0" y="646" width="1072" height="46" rx="2"/><text class="name" x="16" y="666">config</text><text class="line" x="16" y="684">The shared toolchain and theme</text></a><a class="node tone-amber is-progress is-template" data-id="template" data-tier="building-blocks" aria-label="template: The whole SaaS app, built from the libraries. In progress. Built on prisma-map, json-rules, permissions, rules-builder, atlas, config, worktrees, init, CI rules, transitions, gloss." style="--i:37" href="#content"><polygon class="face-top" points="0,10 13,1 1143,1 1130,10"/><polygon class="face-side" points="1130,10 1143,1 1143,93 1130,102"/><rect class="face-base" x="0" y="10" width="1130" height="92" rx="2"/><rect class="face-front" x="0" y="10" width="1130" height="92" rx="2"/><text class="name name-big" x="16" y="50">template</text><text class="line" x="16" y="72">Consumes all of them</text><rect class="flag-plate" x="1047.615" y="19" width="72.38500000000002" height="18" rx="9"/><text class="flag" x="1083.8075" y="31.5" text-anchor="middle">in progress</text></a></g></svg></svg>
