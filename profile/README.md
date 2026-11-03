@@ -26,12 +26,12 @@ Like shadcn, but for the whole SaaS app. You start from it and own the code: an 
 
 ### The libraries
 
-Rules, permissions and lifecycles, in dependency order.
+Rules, permissions and lifecycles, in dependency order from the bottom up.
 
+- **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
 - **[json-rules](https://github.com/inixiative/json-rules)**: one rule AST compiles to in-memory checks, Prisma queries and SQL `WHERE` clauses. Serializable, with type-safe operators, paths and binding.
 - **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
 - **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
-- **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
 - **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
 
 ### Developer tooling
@@ -109,6 +109,8 @@ Our own challenge set for coding agents, from staff to architect tiers. Results 
 ## Governance
 
 The long-term goal is tools for people, and their agents, to cooperate. The whitepaper and the proposals are designs for cooperation at scale: how groups set rules, hold each other accountable, and invest together without a central referee.
+
+**Planned: the Inixiative project.** A platform where a group pools money, tracks who owns what with tokens, and releases funds only when the participants agree a milestone was met. Each initiative governs itself: the marketplace it runs in can't change its rules, move its funds or override its votes. It started as governance software; a friend pointed me to managing money as the practical place to start, because it forces real cooperation. The first use case is cattle trusts in Uruguay and Argentina. Nothing is built for users yet. [The write-up](https://www.inixiative.com/proposals/platform/).
 
 [The proposals](https://www.inixiative.com/proposals) · [whitepaper on GitHub](https://github.com/inixiative/whitepaper)
 
