@@ -120,7 +120,9 @@ Our own challenge set for coding agents, from staff to architect tiers. Results 
 
 The long-term goal is tools for people, and their agents, to cooperate. The whitepaper and the proposals are designs for cooperation at scale: how groups set rules, hold each other accountable, and invest together without a central referee.
 
-**Planned: the Inixiative project.** A platform where a group pools money, tracks who owns what with tokens, and releases funds only when the participants agree a milestone was met. Each initiative governs itself: the marketplace it runs in can't change its rules, move its funds or override its votes. It started as governance software; a friend pointed me to managing money as the practical place to start, because it forces real cooperation. The first use case is cattle trusts in Uruguay and Argentina. Nothing is built for users yet. [The write-up](https://www.inixiative.com/proposals/platform/).
+**Planned: Inixiative.** A governance platform that runs over time, with ownership tracked in tokens. A group funds an initiative in phases: members put money into escrow, the operator shows a milestone was met, the members vote, and only then is that phase's money released. An ongoing venture votes each period on whether to reinvest or pay out. Each initiative sets its own rules; the marketplace it runs in can't change them, move its funds or override its votes. It started as governance software; a friend pointed me to managing money as the practical place to start, because it forces real cooperation. Nothing is built for users yet. [The write-up](https://www.inixiative.com/proposals/platform/).
+
+**Planned: Livestock.** The first product meant to run on Inixiative: cattle trusts in Uruguay and Argentina, with ownership in tokens. Livestock handles the cattle side; Inixiative handles the funding, the milestones and the votes.
 
 [The proposals](https://www.inixiative.com/proposals) · [whitepaper on GitHub](https://github.com/inixiative/whitepaper)
 
