@@ -23,7 +23,7 @@ The workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. The
 - **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides. *(Built; off by default. Turn the chorus on in settings.)*
 - **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions, a worker per thread, every session captured.
 - **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Host side built; joiner view in progress.)*
-- **Stop checking a dozen apps.** Your agent will bring you the GitHub, Slack and Linear events that need you. *(In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)*
+- **Stop checking a dozen apps.** Whatever comes in (a Slack DM, a review request, an email) reaches you already researched and in context. It's read as data, so it can't instruct your agent. *(In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)*
 - **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. *(In progress.)*
 
 [GitHub](https://github.com/inixiative/foundry) · [npm](https://www.npmjs.com/package/@inixiative/foundry)
@@ -115,6 +115,6 @@ We open the pieces people build on, and keep the hosted service and the tuning c
 
 ---
 
-**Contributors:** Aron Greenspan, Will Lawton.
+**Contributors:** Aron Greenspan.
 
 [www.inixiative.com](https://www.inixiative.com) · [Substack](https://inixiative.substack.com) · [X](https://x.com/inixiative)
