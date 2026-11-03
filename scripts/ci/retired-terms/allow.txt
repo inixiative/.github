@@ -1,0 +1,5 @@
+# BRAND.md lists the retired words so writers know them: a retired-names table, not stale copy.
+BRAND.md	kastle
+BRAND.md	castle
+BRAND.md	foundry-oracle
+BRAND.md	own-llm-keys
