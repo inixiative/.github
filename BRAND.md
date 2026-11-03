@@ -2,7 +2,7 @@
 
 Aron's decisions, 2026-11-02. Every marketing surface uses these words: inixiative.com, the GitHub org profile, repo descriptions, READMEs and the Kingdom landing. When in doubt, use these exact lines. Don't invent new slogans. Each product fact matches what is built; anything not built yet is marked in progress.
 
-Why it lives here: our copy rotted once already. Old names stayed in repo descriptions and READMEs after the products moved on. This file is the one source. The marketing owner's weekly pass compares every public surface against it, and `@inixiative/config check` fails on the retired words below. Change the copy here first, by PR.
+Why it lives here: our copy rotted once already. We left old names in repo descriptions and READMEs after the products changed. This file is the one source. The marketing owner's weekly pass compares every public surface against it, and `@inixiative/config check` fails on the retired words below. Change the copy here first, by PR.
 
 ## Voice
 
@@ -10,6 +10,38 @@ Why it lives here: our copy rotted once already. Old names stayed in repo descri
 - No em-dash asides, no "not X, but Y" constructions, no hype adjectives, and never "novel" or "revolutionary".
 - State the mechanism and the bet plainly, without hedging. Marketing is not the paper.
 - Don't invent numbers. Show why with specifics instead of superlatives.
+- The bold lines in this file are Aron's chosen pitches. Keep them exactly as written; the sentences around them follow the rules below.
+
+The rules below are the short, complete form of the no-slop skill (Aron, 2026-11-02: "Please use the no-slop skill on all of our copy."). If you have the skill (`~/.claude/skills/no-slop-writing`), load it and its two reference files before drafting. Why: Aron wants every public line to read as written by the people who built the product, with a fact in every sentence.
+
+### Genre
+
+Write product pages, READMEs, profile copy and repo descriptions as a briefing from the person who built the thing to a peer who will use it. Each section says what the thing does, who it is for, what it does not do yet, and how to start. Headings state the finding. Telegraphic lists are fine where every item carries a fact. Every sentence carries a fact (a name, a number, a decision, a state such as "in progress") or connects two that do; if there is nothing concrete to say, cut the sentence.
+
+### Agency
+
+People make decisions, so name them. A thing can be the subject only when the verb is what it mechanically does ("Kingdom runs the command", "Archive keeps every session"). An object never takes a verb that stands for a human choice or its consequence: surfaces, emerges, creeps in, falls through the cracks, keeps adding, ends up as, drives (a decision), nobody owns, nobody chose. Keep tense steady within a sentence. Test: ask "who decided this?" of every sentence about a choice, and name that person or team.
+
+### Never
+
+- Em dashes, in any function, and en dashes used as dashes. Use a period, comma or colon.
+- "Not X, it's Y" or "not X, but Y" reframes, unless X is something the reader believed and Y corrects it.
+- Rhetorical questions as transitions ("So what does this mean?").
+- One-line emphasis fragments ("That matters.", "This is the shift.").
+- Colons that build suspense. A colon delivers information.
+- Stacked synonym adjectives. Pick the one accurate word.
+- Affirmation openers ("Absolutely", "Great question"), "it's worth noting", "it's important to understand".
+- Truth-intensifiers: actually, genuinely, really, truly, in reality, the reality is.
+- Tacked-on codas: ", which is why…", ", which is where…", ", which is what…".
+- Rule-of-three padding. Two real points stay two.
+- Insight-cosplay metaphors: load-bearing, says the quiet part out loud, where it lands, the move, the through-line, the tell, at its core, table stakes, the sharpest version of, the honest answer.
+- Filler openers: Here's the thing, That said, At the end of the day, In today's landscape, Make no mistake, Simply put.
+- Claims nobody has measured, and superlatives.
+- Corporate-polish words: leverage, robust, seamless, navigate (figurative), underscore, foster, empower, unlock, elevate, streamline, delve, dive into, ecosystem, landscape, realm, tapestry, nuanced, crucial, pivotal, vital, compelling, myriad, plethora, game-changer, cutting-edge, best-in-class, holistic, synergistic, pioneering. Names that contain one (a package or a command such as `train/ecosystem-sync`) stay.
+
+### Review as a rejector
+
+Don't smooth prose line by line: a reviewer who rewrites as they go becomes a second author writing in the default register. For each sentence, keep it untouched or reject it, name the rule above that it breaks, and write that one sentence again inside the genre. Before publishing, search the diff for `—`, ` – ` and every word in the polish list, ask "who decided this?" of each sentence about a choice, and delete any opening line that clears its throat.
 
 ## inixiative
 
@@ -25,14 +57,14 @@ Theme: `data-domain="agentic"`, lime.
 - Lines: **"An agent that works like you do."** and **"Giving your work a voice."**
 - Framing (Aron's Substack, 2026-03-21, "The Real Problem With AI Coding Isn't Capability. It's Alignment."):
   - Every session starts half-amnesiac, and you pay a re-alignment tax: re-explaining conventions, decisions and taste.
-  - The model and the harness are outside your control. Your corpus (docs, rules, CLAUDE.md) is the only layer you control, and Foundry gives you a real tool to control it.
+  - The model and the harness are outside your control. Your corpus (docs, rules, CLAUDE.md) is the only layer you control, and Foundry gives you a tool to control it.
   - The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically.
-  - Early runs, where Aron's corrections were given to the agent before it planned, came out right. Cite them as "early runs" with no invented stats. Oracle runs the tuning loop.
+  - In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Cite them as "early runs" with no invented stats. Oracle runs the tuning loop.
 - **Foundry** (source-available, BSL 1.1) is the workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. Its pitches, in order:
   1. **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides.
   2. **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions; a worker per thread; every session captured.
   3. **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. (Host side built; joiner view in progress.)
-  4. **Stop checking a dozen apps.** Work comes to you, already understood. (In progress.)
+  4. **Stop checking a dozen apps.** Your GitHub, Slack and Linear events reach your agent, and it brings you the ones that need you. (In progress: Kingdom streams the events; Foundry doesn't show them yet.)
   5. **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. (In progress.)
 
   Subhead option: "The voice of the codebase."
@@ -87,6 +119,6 @@ Theme: `data-domain="governance"`, violet.
 - Cursor as a Foundry runtime
 - "your own LLM keys"
 - token savings as Foundry's value
-- "principal" for the permission holder in marketing copy: use actor and anchor. (Open: the permissions README still uses "principal" as its glossary word for any holder; Aron to decide whether that changes too.)
+- "principal" for the permission holder: use actor and anchor (the permissions README dropped it in #25).
 
 Where a word can be checked mechanically, `@inixiative/config check` fails on it (its retired-terms rule, with per-repo allow lists and baselines). The rest are checked by the weekly pass.

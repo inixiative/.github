@@ -14,7 +14,7 @@
 
 **An agent that works like you do.** Giving your work a voice.
 
-Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and these tools give you a real way to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, when Aron's corrections were injected before planning, the plans came out right. Oracle runs the tuning loop.
+Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
 
 ### Foundry
 
@@ -23,7 +23,7 @@ The workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. The
 - **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides.
 - **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions, a worker per thread, every session captured.
 - **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Host side built; joiner view in progress.)*
-- **Stop checking a dozen apps.** Work comes to you, already understood. *(In progress.)*
+- **Stop checking a dozen apps.** Your GitHub, Slack and Linear events reach your agent, and it brings you the ones that need you. *(In progress: Kingdom streams the events; Foundry doesn't show them yet.)*
 - **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. *(In progress.)*
 
 [GitHub](https://github.com/inixiative/foundry) · [npm](https://www.npmjs.com/package/@inixiative/foundry)
@@ -76,7 +76,7 @@ Our own challenge set for coding agents, from staff to architect tiers. Results 
 
 ### template
 
-Like shadcn, but for the whole SaaS backend. You start from it and own the code: Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. To get your agent to use what's here, use the agentic level.
+Like shadcn, but for the whole SaaS backend. You start from it and own the code. It runs on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. To get your agent to use what's here, use the agentic level.
 
 [GitHub](https://github.com/inixiative/template)
 
@@ -88,7 +88,7 @@ In dependency order.
 - **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
 - **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
 - **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
-- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations that can't drift.
+- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations, which `atlas check` verifies in CI.
 - **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
 - **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
 - **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.
