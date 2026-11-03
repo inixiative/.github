@@ -182,7 +182,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. T
 
 ### Database & ORM
 
-*Why: correctness, type safety and consistency are decided in the database layer. These primitives make Prisma transactional by default and introspectable at runtime, and they disable the calls that would skip hooks.*
+*Why: correctness, type safety and consistency are decided in the database layer. These primitives make Prisma transactional by default and introspectable at runtime, and they reject or disable the writes that would skip hooks.*
 
 - **prismaMap (`@inixiative/prisma-map`)**: generated runtime model/field/relation map; powers hooks, factories, lenses.
 - **Model name utilities**: `ModelName` ↔ `AccessorName` conversion. <small>API · `isModelName` · `isAccessorName`</small>

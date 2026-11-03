@@ -20,10 +20,10 @@ Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explain
 
 The workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. The voice of the codebase.
 
-- **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides.
+- **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides. *(Built; off by default. Turn the chorus on in settings.)*
 - **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions, a worker per thread, every session captured.
 - **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Host side built; joiner view in progress.)*
-- **Stop checking a dozen apps.** Your GitHub, Slack and Linear events reach your agent, and it brings you the ones that need you. *(In progress: Kingdom streams the events; Foundry doesn't show them yet.)*
+- **Stop checking a dozen apps.** Your agent will bring you the GitHub, Slack and Linear events that need you. *(In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)*
 - **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. *(In progress.)*
 
 [GitHub](https://github.com/inixiative/foundry) · [npm](https://www.npmjs.com/package/@inixiative/foundry)
@@ -42,7 +42,7 @@ Pass-through execution with tracking and audit, built on the permissions library
 
 ### KCP, the Kingdom CLI Proxy
 
-Run your provider CLIs through Kingdom with no credentials on your machine. Kingdom runs the command and streams the output back. *(In progress.)*
+Built so far: `kcp login`, `status` and `map`. Next: Kingdom runs your provider CLIs with its stored credentials and streams the output back, so none sit on your machine. *(In progress.)*
 
 [GitHub](https://github.com/inixiative/kcp) · [npm](https://www.npmjs.com/package/@inixiative/kcp)
 
@@ -88,7 +88,7 @@ In dependency order.
 - **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
 - **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
 - **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
-- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations, which `atlas check` verifies in CI.
+- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations; `atlas check` fails CI when they drift.
 - **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
 - **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
 - **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.

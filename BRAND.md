@@ -10,9 +10,9 @@ Why it lives here: our copy rotted once already. We left old names in repo descr
 - No em-dash asides, no "not X, but Y" constructions, no hype adjectives, and never "novel" or "revolutionary".
 - State the mechanism and the bet plainly, without hedging. Marketing is not the paper.
 - Don't invent numbers. Show why with specifics instead of superlatives.
-- The bold lines in this file are Aron's chosen pitches. Keep them exactly as written; the sentences around them follow the rules below.
+- Aron's chosen pitches stay exactly as written: "Technology for cooperation." · "An agent that works like you do." · "Giving your work a voice." · "Stop repeating yourself to Claude." · "Stop checking a dozen apps." · "Stop being a meat proxy." · "Everything you're doing, in one place." · "Bring your agent." · "The voice of the codebase." · "Stop rediscovering what you need to build." · "like shadcn, but for the whole SaaS backend" · the `<iXi>` mark. The sentences around them follow the rules below.
 
-The rules below are the short, complete form of the no-slop skill (Aron, 2026-11-02: "Please use the no-slop skill on all of our copy."). If you have the skill (`~/.claude/skills/no-slop-writing`), load it and its two reference files before drafting. Why: Aron wants every public line to read as written by the people who built the product, with a fact in every sentence.
+The rules below are the short form of the no-slop skill; the skill holds the register anchors and the full detail (Aron, 2026-11-02: "Please use the no-slop skill on all of our copy."). If you have the skill (`~/.claude/skills/no-slop-writing`), load it and its two reference files before drafting. Why: Aron wants every public line to read as written by the people who built the product, with a fact in every sentence.
 
 ### Genre
 
@@ -20,7 +20,7 @@ Write product pages, READMEs, profile copy and repo descriptions as a briefing f
 
 ### Agency
 
-People make decisions, so name them. A thing can be the subject only when the verb is what it mechanically does ("Kingdom runs the command", "Archive keeps every session"). An object never takes a verb that stands for a human choice or its consequence: surfaces, emerges, creeps in, falls through the cracks, keeps adding, ends up as, drives (a decision), nobody owns, nobody chose. Keep tense steady within a sentence. Test: ask "who decided this?" of every sentence about a choice, and name that person or team.
+People make decisions, so name them. A thing can be the subject only when the verb is what it mechanically does ("Kingdom runs the command", "Archive keeps every session"). An object never takes a verb that stands for a human choice or its consequence: surfaces, emerges, creeps in, falls through the cracks, keeps adding, ends up as, drives (a decision), nobody owns, nobody chose. Past decisions go in past tense with a named actor; current conditions go in present tense; don't slide between them within a sentence. Write that a team adopted, selected or brought in a tool, not that it bought one. Test: ask "who decided this?" of every sentence about a choice, and name that person or team.
 
 ### Never
 
@@ -31,17 +31,19 @@ People make decisions, so name them. A thing can be the subject only when the ve
 - Colons that build suspense. A colon delivers information.
 - Stacked synonym adjectives. Pick the one accurate word.
 - Affirmation openers ("Absolutely", "Great question"), "it's worth noting", "it's important to understand".
-- Truth-intensifiers: actually, genuinely, really, truly, in reality, the reality is.
+- Truth-intensifiers: actually, genuinely, really, truly, in reality, the reality is. Never in a heading or subject line.
 - Tacked-on codas: ", which is why…", ", which is where…", ", which is what…".
 - Rule-of-three padding. Two real points stay two.
 - Insight-cosplay metaphors: load-bearing, says the quiet part out loud, where it lands, the move, the through-line, the tell, at its core, table stakes, the sharpest version of, the honest answer.
 - Filler openers: Here's the thing, That said, At the end of the day, In today's landscape, Make no mistake, Simply put.
 - Claims nobody has measured, and superlatives.
-- Corporate-polish words: leverage, robust, seamless, navigate (figurative), underscore, foster, empower, unlock, elevate, streamline, delve, dive into, ecosystem, landscape, realm, tapestry, nuanced, crucial, pivotal, vital, compelling, myriad, plethora, game-changer, cutting-edge, best-in-class, holistic, synergistic, pioneering. Names that contain one (a package or a command such as `train/ecosystem-sync`) stay.
+- Corporate-polish words: leverage, robust, seamless, navigate (figurative), underscore, foster, empower, unlock, elevate, streamline, delve, dive into, ecosystem, landscape, realm, tapestry, nuanced, crucial, pivotal, vital, compelling, myriad, plethora, game-changer, cutting-edge, best-in-class, holistic, synergistic, pioneering; also intuitive, data-driven as decoration, "deliver personalized experiences", "amplifying the spectrum", and stacked verbs (craft, integrate, maximize, optimize). Names that contain one (a package or a command such as `train/ecosystem-sync`) stay.
 
 ### Review as a rejector
 
-Don't smooth prose line by line: a reviewer who rewrites as they go becomes a second author writing in the default register. For each sentence, keep it untouched or reject it, name the rule above that it breaks, and write that one sentence again inside the genre. Before publishing, search the diff for `—`, ` – ` and every word in the polish list, ask "who decided this?" of each sentence about a choice, and delete any opening line that clears its throat.
+Don't smooth prose line by line: a reviewer who rewrites as they go becomes a second author writing in the default register. For each sentence, keep it untouched or reject it, name the rule above that it breaks, and write that one sentence again inside the genre. Before publishing, search the diff for `—`, ` – ` and every word in the polish list, ask "who decided this?" of each sentence about a choice, and delete any opening line that clears its throat. Each sentence should fit inside one of the skill's register anchors.
+
+Vary paragraph length. Put the most important item in a list where it reads as most important. Match the weight of the language to the weight of the fact. When you don't know, say so instead of filling the gap.
 
 ## inixiative
 
@@ -61,16 +63,16 @@ Theme: `data-domain="agentic"`, lime.
   - The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically.
   - In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Cite them as "early runs" with no invented stats. Oracle runs the tuning loop.
 - **Foundry** (source-available, BSL 1.1) is the workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. Its pitches, in order:
-  1. **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides.
+  1. **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides. (Built; off by default.)
   2. **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions; a worker per thread; every session captured.
   3. **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. (Host side built; joiner view in progress.)
-  4. **Stop checking a dozen apps.** Your GitHub, Slack and Linear events reach your agent, and it brings you the ones that need you. (In progress: Kingdom streams the events; Foundry doesn't show them yet.)
+  4. **Stop checking a dozen apps.** Your agent will bring you the GitHub, Slack and Linear events that need you. (In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)
   5. **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. (In progress.)
 
   Subhead option: "The voice of the codebase."
 - **Kingdom** (closed, hosted at kingdom.inixiative.com): "Everything you're doing, in one place." Your apps, data, AI and agents across every team you're in. Decide who and what can reach each piece, for how long, and take it back. "Bring your agent." The Kingdom landing's eyebrow is always "Kingdom".
 - **Signet** (open, MIT): pass-through execution with tracking and audit, built on the permissions library. It is how anything uses an integration through Kingdom: a revocable pass on the owner's terms.
-- **KCP, the Kingdom CLI Proxy** (open, MIT; **in progress**): run your provider CLIs through Kingdom with no credentials on your machine. Kingdom runs the command and streams the output back. Don't claim it works end to end yet.
+- **KCP, the Kingdom CLI Proxy** (open, MIT; **in progress**): built so far: `kcp login`, `status` and `map`. Next: Kingdom runs your provider CLIs with its stored credentials and streams the output back, so none sit on your machine. Don't claim it works end to end yet.
 - **Archive** (open, MIT): keeps every agent session, local-first, and syncs to the archives you choose.
 - **Oracle** (closed): measures whether a correction stuck and tunes the docs and Wardens (the loop). Give it one line, and never describe its method, fixtures or scoring.
 - **agent-session** (open, MIT): drive Claude Code, Codex and Muse as persistent streaming sessions behind one interface.
@@ -90,7 +92,7 @@ Theme: `data-domain="building-blocks"`, amber.
   - **transitions:** declarative lifecycles on json-rules.
   - **rules-builder:** a headless builder that offers only what the engine can run.
   - **prisma-map**.
-  - **atlas:** a codebase map that can't drift.
+  - **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
   - **gloss:** comment-free source with sidecar explanations.
   - **config:** the shared toolchain and theme.
 - Package order is dependency order: json-rules → permissions → transitions → prisma-map → atlas → rules-builder → config → gloss.
