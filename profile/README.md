@@ -5,8 +5,37 @@
 <p align="center"><strong>Technology for cooperation.</strong></p>
 
 <p align="center">
-  <a href="#agentic">Agentic</a> · <a href="#building-blocks">Building blocks</a> · <a href="#governance">Governance</a>
+  <a href="#building-blocks">Building blocks</a> · <a href="#agentic">Agentic</a> · <a href="#governance">Governance</a>
 </p>
+
+---
+
+## Building blocks
+
+**Stop rediscovering what you need to build.**
+
+### template
+
+Like shadcn, but for the whole SaaS backend. You start from it and own the code. It runs on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. To get your agent to use what's here, use the agentic level.
+
+[GitHub](https://github.com/inixiative/template)
+
+### The packages
+
+In dependency order.
+
+- **[json-rules](https://github.com/inixiative/json-rules)**: one rule AST compiles to in-memory checks, Prisma queries and SQL `WHERE` clauses. Serializable, with type-safe operators, paths and binding.
+- **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
+- **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
+- **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
+- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations; `atlas check` fails CI when they drift.
+- **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
+- **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
+- **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.
+
+Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemind), [conditional-form](https://github.com/inixiative/conditional-form).
+
+**[Full vocabulary](https://www.inixiative.com/vocabulary.html)** of every primitive ([source](https://github.com/inixiative/.github/blob/main/VOCABULARY.md)).
 
 ---
 
@@ -67,35 +96,6 @@ Drive Claude Code, Codex and Muse as persistent streaming sessions behind one in
 Our own challenge set for coding agents, from staff to architect tiers. Results are from June 2026; more challenges are coming.
 
 [bench.inixiative.com](https://bench.inixiative.com)
-
----
-
-## Building blocks
-
-**Stop rediscovering what you need to build.**
-
-### template
-
-Like shadcn, but for the whole SaaS backend. You start from it and own the code. It runs on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. To get your agent to use what's here, use the agentic level.
-
-[GitHub](https://github.com/inixiative/template)
-
-### The packages
-
-In dependency order.
-
-- **[json-rules](https://github.com/inixiative/json-rules)**: one rule AST compiles to in-memory checks, Prisma queries and SQL `WHERE` clauses. Serializable, with type-safe operators, paths and binding.
-- **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
-- **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
-- **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
-- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations; `atlas check` fails CI when they drift.
-- **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
-- **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
-- **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.
-
-Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemind), [conditional-form](https://github.com/inixiative/conditional-form).
-
-**[Full vocabulary](https://www.inixiative.com/vocabulary.html)** of every primitive ([source](https://github.com/inixiative/.github/blob/main/VOCABULARY.md)).
 
 ---
 
