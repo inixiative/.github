@@ -1,6 +1,6 @@
 # Vocabulary
 
-The inixiative ecosystem is built **"solve it once"**: each concern has one canonical home, and new features resolve *to* it rather than around it. This page is the glossary of every primitive — first the **ecosystem spine** (the cross-library kernel: rules, lens, sources, builders, and the layers that compose on them), then the **template** that consumes it (a production SaaS foundation). Each entry names a **concept** (what it solves / how it works); the methods on that concept sit beneath it in a dim API row.
+The inixiative ecosystem is built **"solve it once"**: each concern has one canonical home, and new features resolve *to* it rather than around it. This page is the glossary of every primitive — first the **ecosystem spine** (the cross-library kernel: rules, lens, sources, builders, and the layers that compose on them), then the **template** that consumes it (a production SaaS foundation), then the **agentic** layer (Foundry, Kingdom and the pieces around them). Each entry names a **concept** (what it solves / how it works); the methods on that concept sit beneath it in a dim API row.
 
 ```
 rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check / compile
@@ -105,7 +105,7 @@ A `LensNarrowing` layer has a `root` (path-specific, from the anchor) and `mapDe
 
 #### @inixiative/permissions
 **Solves:** who may do what, decided on your own records: roles, relations and conditions in one engine, with delegation that never outlives whoever granted it, and no second store to sync.
-**How:** a schema maps each resource's actions to an `ActionRule`, all plain JSON. A **permix** holds what a principal holds, its **permissions**: role grants plus **entitlements**, each backed by its grantor and asked again at every use. `check` decides on a loaded record. The **core** (about a thousand lines) never imports the **helpers** (delegation, hydration). 1.0, by the end of 2026, adds **reflection**: the same rules compiled to Prisma and SQL, so "which records can I read" and "who can read this" are one query each.
+**How:** a schema maps each resource's actions to an `ActionRule`, all plain JSON. A **permix** holds what the actor holds, its **permissions**: role grants plus **entitlements**, each backed by its grantor and asked again at every use. `check` decides on a loaded record. The **core** (about a thousand lines) never imports the **helpers** (delegation, hydration). 1.0, by the end of 2026, adds **reflection**: the same rules compiled to Prisma and SQL, so "which records can I read" and "who can read this" are one query each.
 <small>API · `createRebacCheck` · `createPermissions` · `createCanGrantEntitlement` — may this writer hand that entitlement on · `validateActionRule` — check a stored rule before saving · helpers: `delegate` / `capAtRole` / `installPermissions` / `permixOf` / `createHydrator`</small>
 
 #### @inixiative/prisma-map
@@ -239,8 +239,8 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **rebacSchema** — the template's actions per model. <small>API · `ownerActions()` (across owner relations) · `memberRowActions` (member rows) · routes declare checks via `validatePermission` / `validateSubmodelPermission`</small>
 - **Role + StandardAction** — `owner > admin > member > viewer`, mapping to `own > manage > operate > read`. <small>API · `roleToStandardAction`</small>
 - **PlatformRole / superadmin bypass** — `user | superadmin`; superadmin short-circuits every check.
-- **Permix** — a principal's installed permissions for one request. <small>API · `createPermissions()` · `setup` · `setActor` · `setSuperadmin` · `installPermissionsFor`</small>
-- **Permissions** — what a principal holds: role grants plus entitlements, and for a delegate, `full`. <small>API · `permissionsOfUser` · `ownerPermissions` · `delegatedPermissions`</small>
+- **Permix** — the actor's installed permissions for one request. <small>API · `createPermissions()` · `setup` · `setActor` · `setSuperadmin` · `installPermissionsFor`</small>
+- **Permissions** — what the actor holds: role grants plus entitlements, and for a delegate, `full`. <small>API · `permissionsOfUser` · `ownerPermissions` · `delegatedPermissions`</small>
 - **Entitlement** — an action on a resource, from an anchor record, narrowed by an optional `where`, backed by whoever granted it. Every check asks the grantor again, up the chain; demote anyone and what they handed on stops. <small>API · `changeEntitlements` (add / remove) · the library's grant check decides who may hand one on</small>
 - **Delegate** — a token or integration acting for its owner: `full` (the owner whole, in sync), a role (the owner capped at that role, `capAtRole`) or entitlements. Never more than its owner. Setting `full` takes the person-only `delegateFull` action.
 - **Member self-grant** — every member row's entitlement to `operate` on itself, backed by its user; written on create and kept by a rule.
@@ -407,3 +407,38 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. A
 - **atlas** — navigate by concept not folders: `@atlas` annotations + `.atlas/` registry + generated `MAP.md`. <small>CLI · `graph` (reverse indexes) · `query` (by kind/partOf/uses/path/json-rules) · `generate` (write `MAP.md`) · `stamp` (fill derivable axes) · `check`/`coverage` (CI) · `hook read` / `hook grep` (agent hooks)</small>
 - **`@atlas` block** — per-file `@kind` (role) / `@partOf` (concepts) / `@uses` (load-bearing deps) / `@constructs`.
 - **`.atlas/` config** — `config.ts` (stamp/include rules), `kinds.ts` (role vocab), `concepts.ts` (concept registry).
+
+---
+
+## Part III · Agentic
+
+The tools that carry what you've already decided into every agent session, and the hosted hub they connect through. Product lines are in the [org profile](https://github.com/inixiative/.github/blob/main/profile/README.md); this part names the words.
+
+### Foundry and the chorus
+
+*Why: one big prompt loses instructions in the sauce. Many narrow experts, each holding one part of how the codebase works, stay sharp and point the agent at what already exists.*
+
+- **Foundry** — the workspace around your agent: Claude Code, Codex and Muse as workers, ACP apps (Paseo, T3 Code, Zed) as clients. It runs locally on your own subscriptions and wraps each thread with Wardens. The app is source-available (BSL 1.1); its core engine (`@inixiative/foundry-core`) and ACP adapter (`@inixiative/foundry-acp`) are MIT.
+- **Warden** — an expert on one region of the codebase, built from that region's docs. On each turn it answers whether the moment touches its region and, if so, points at what already exists and where it's written. It comments; it never blocks. A Warden that times out stays silent for that turn, and the thread shows it.
+- **Chorus** — a project's set of region Wardens, asked every turn. Each project has its own.
+- **Layer 1 / Layer 2** — the chorus's two steps. Layer 1 (Haiku) detects: is this moment in my region, with a one-line why. On each yes, Layer 2 (Sonnet) confirms and picks the thing and where it's written. Layer 2 doesn't see Layer 1's why.
+- **Herald** *(planned)* — carries live data where Wardens carry static knowledge: what other agents and teammates are working on, in Linear, GitHub and Slack. Not built yet.
+
+### Kingdom and access
+
+*Why: agents need access to your apps and data without you logging them in, and every grant needs an owner who can take it back.*
+
+- **Kingdom** — the hosted hub at [kingdom.inixiative.com](https://kingdom.inixiative.com): identity, owners, integrations and Signets. Foundries, Archives and Oracle connect through it. Closed.
+- **Owner** — who a thing belongs to, for tenancy: a user, an organization user (a person's membership in an org), an organization, a space, or a space user.
+- **Project** — what an owner organizes work around: a name, an optional description, tags. A Signet names the projects it may be used in, and a Foundry project links to one Kingdom project.
+- **Integration** — a provider connected to an owner (GitHub, Slack, a Claude or Codex subscription, a Foundry, an Archive). Its **Credential** is what Kingdom uses to call the provider: encrypted, outbound, never handed out. A Kingdom **Token** is a different thing: a key for Kingdom's own API, with a role.
+- **Signet** — the only grant for using an integration: which resources and operations, through which lens, within which limits, until it's revoked. Its authority comes from its owner. It's presented with an enrolled key, and what's done through it is recorded as usage. `@inixiative/signet` (MIT) is pass-through execution with tracking and audit, built on the permissions library.
+- **KCP** *(in progress)* — the Kingdom CLI Proxy. Your provider CLIs run through Kingdom with no credentials on your machine; Kingdom runs the command and streams the output back. MIT.
+
+### Sessions and the loop
+
+*Why: corrections only compile into docs if the sessions they happened in are kept, and only matter if they stop recurring.*
+
+- **Archive** — keeps every agent session, local-first, and syncs to the archives you choose. MIT.
+- **agent-session** — drives Claude Code, Codex and Muse as persistent streaming sessions behind one interface. MIT.
+- **Oracle** — measures whether a correction stuck, and tunes the docs and Wardens. Closed.
