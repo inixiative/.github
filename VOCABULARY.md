@@ -1,6 +1,6 @@
 # Vocabulary
 
-We build the inixiative packages to **"solve it once"**: each concern has one home, and new features use that home instead of working around it. This page is the glossary of every primitive. It covers the **shared spine** first (the cross-library kernel: rules, lens, sources, builders, and the layers that compose on them), then the **template** that consumes it (a production SaaS foundation), then the **agentic** layer (Foundry, Kingdom and the pieces around them). Each entry names a **concept** (what it solves / how it works); the methods on that concept sit beneath it in a dim API row.
+We build the inixiative packages to **"solve it once"**: each concern has one home, and new features use that home instead of working around it. This page is the glossary of every primitive, in four parts. The **building blocks** come first, in the order they stack: prisma-map supplies the field map, json-rules writes rules and lenses against it, permissions decides access with those rules, transitions guards state changes with json-rules and permissions, and rules-builder edits rules in your UI. **Developer experience** (atlas, gloss, config) helps the people and agents working in the code without changing what the code does. The **template** is a production SaaS app built on the building blocks. The **agentic** part covers Foundry, Kingdom and the pieces around them. Each entry names a **concept** (what it solves, how it works); the methods on that concept sit beneath it in a dim API row.
 
 ```
 rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check / compile
@@ -15,13 +15,31 @@ rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check /
                           the template (consumes all of it)
 ```
 
-> Canonical source: [`inixiative/.github`](https://github.com/inixiative/.github/blob/main/VOCABULARY.md) · rendered at [www.inixiative.com/vocabulary.html](https://www.inixiative.com/vocabulary.html)
+> Canonical source: [`inixiative/.github`](https://github.com/inixiative/.github/blob/main/VOCABULARY.md) · rendered at [www.inixiative.com/vocabulary](https://www.inixiative.com/vocabulary/)
 
 ---
 
-## Part I · The shared spine
+## Part I · The building blocks
 
-### 1 · Rule logic: the atom
+Five MIT packages, in the order they build on each other: §1 is `@inixiative/prisma-map`, §2 to §6 are `@inixiative/json-rules`, §7 is `@inixiative/permissions`, §8 is `@inixiative/transitions` and §9 is `@inixiative/rules-builder`.
+
+### 1 · Schema: the shape of data
+
+#### @inixiative/prisma-map
+**Solves:** one runtime map of your Prisma schema that every other building block reads, without adding a Prisma generator.
+**How:** reads the client you already generate (Prisma v6 or v7) and returns its models, fields, field kinds, relations with their foreign-key direction (`fromFields`/`toFields`), enum values and defaults, keyed by Prisma name, with the database name (`dbName`) wherever `@map`/`@@map` changes it. json-rules reads it as a `FieldMap` (`{ models: map }`), and permissions takes that field map as its `SchemaMap`'s `fieldMap`.
+<small>API · `buildPrismaMapV7` / `buildPrismaMapV6`: build the map from the generated client · `getColumns(map, model)`: a model's scalar and enum field names, in schema order · `pickColumns(map, model, row)`: a row cut to its columns, dropping included relations · `getRelations` / `relationForeignKey`: a model's relations and their keys · `tableName` / `columnName` / `storedValue`: the table, column and stored enum value the database uses, for code that writes SQL · `hasColumn` / `isScalarField` / `isEnumField`: narrow a field to the kinds that have a column.</small>
+
+#### FieldMap
+**Solves:** describe data (models, fields, kinds, relations, allowed values) in one shape the rest of json-rules is written against, with no ORM import.
+**How:** `{ models: { Model: { fields: { name: FieldMapEntry } } }, enums? }`. A `FieldMapEntry` has `kind` (`scalar | object | enum | bridge`), `type`, optional `isList`, `fromFields`/`toFields` (FK columns), and `values`: an optional `readonly string[]` that solves "constrained value set" once (enums and picklists route through it; `validateRuleInLens` gates against it regardless of kind, so no enum-promotion hack). Projection output adds `options` (`{ value, label?, groups? }`) on every value-gated or sourced field. A prisma-map map is one, under `models`.
+
+#### Bridge
+**Solves:** navigable relations *across* separate field maps (e.g. Prisma + Salesforce + CRM) without merging them.
+**How:** a `Bridge` declares two endpoints (`{ fieldMap, model, on }`) and a cardinality (`oneToOne | oneToMany`). Rules read across it by the bridge key (`salesforce:Contact.industry`); `check` walks plain properties, so the caller embeds the foreign row under that key.
+<small>API · `stitchFieldMaps`: inject a navigable `kind: 'bridge'` field on each endpoint model · `indexBridges(set, rawData)`: index foreign rows by their `on` key into a `BridgeDictionary`, ready to embed under bridge keys.</small>
+
+### 2 · Rule logic: the atom
 
 #### Condition
 **Solves:** one serializable way to express "does this hold?": the single predicate language used everywhere a yes/no over data is needed.
@@ -37,16 +55,20 @@ rule logic ─▶ schema ─▶ lens (scoped view) ─▶ sources ─▶ check /
 **Solves:** "where will this rule run?", so a rule can be restricted to operators all chosen targets support.
 **How:** a tag (`check` in-memory · `toPrisma` · `toSql`); operator availability is intersected across the selected targets.
 
-### 2 · Schema: the shape of data
+#### Bindings
+**Solves:** a stored rule that names a per-request value (the caller's id, the tenant) without being rewritten for each request.
+**How:** a `{ bind }` token stands where a value goes; `bindOptional` marks one that may stay unfilled. `check(rule, row, { bindings })` fills them while checking, and `bindRule` fills them before compiling. A required bind left unfilled throws `UsageError`.
+<small>API · `bindRule(rule, bindings)`: substitute the binds the map covers and leave the rest in place · `listBindings(rule, { required })`: the names a bindings map must cover · `clockUnit(rule)`: the finest clock unit the rule's answer can change by while its data stays the same.</small>
 
-#### FieldMap
-**Solves:** describe data (models, fields, kinds, relations, allowed values) without coupling to any ORM.
-**How:** `{ models: { Model: { fields: { name: FieldMapEntry } } }, enums? }`. A `FieldMapEntry` has `kind` (`scalar | object | enum | bridge`), `type`, optional `isList`, `fromFields`/`toFields` (FK columns), and `values`: an optional `readonly string[]` that solves "constrained value set" once (enums and picklists route through it; `validateRuleInLens` gates against it regardless of kind, so no enum-promotion hack). Projection output adds `options` (`{ value, label?, groups? }`) on every value-gated or sourced field.
+#### Rule validation
+**Solves:** reject a malformed rule, or one that would pass on missing data, before it is stored.
+**How:** `validateRule` reports every issue in a rule's shape. With `{ positive: true }` it also refuses every shape that can hold on a missing value (`if`/`then`/`else`, array and aggregate rules, the negations, `isEmpty`, `notExists`), so a rule checked that way passes only on what the row carries.
+<small>API · `validateRule(rule, options)` → `{ ok, errors }` · `assertValidRule`: the same check, thrown.</small>
 
-#### Bridge
-**Solves:** navigable relations *across* separate field maps (e.g. Prisma + Salesforce + CRM) without merging them.
-**How:** a `Bridge` declares two endpoints (`{ fieldMap, model, on }`) and a cardinality (`oneToOne | oneToMany`). Rules read across it by the bridge key (`salesforce:Contact.industry`); `check` walks plain properties, so the caller embeds the foreign row under that key.
-<small>API · `stitchFieldMaps`: inject a navigable `kind: 'bridge'` field on each endpoint model · `indexBridges(set, rawData)`: index foreign rows by their `on` key into a `BridgeDictionary`, ready to embed under bridge keys.</small>
+#### Engine globals
+**Solves:** process-wide defaults a caller sets once at boot instead of passing on every call.
+**How:** typed dotted paths into one state object: `string.caseInsensitive`, `string.fuzzy`, `prismaOptions.datasource.provider`, `sql.dialect` (`SqlDialect.postgres` by default, or `SqlDialect.mysql`) and `clock.finestUnit`. A rule's own flag wins over its default.
+<small>API · `engineGlobals.set` / `get` / `reset` · `engineGlobals.with(values, fn)`: run one synchronous call under other defaults.</small>
 
 ### 3 · Lens: one schema, many scoped views
 
@@ -82,9 +104,28 @@ A `LensNarrowing` layer has a `root` (path-specific, from the anchor) and `mapDe
 #### Compile targets
 **Solves:** run a `Condition` where the data lives, as a prefilter or the full filter where expressible.
 **How:** the same AST, two compilers.
-<small>API · `toPrisma(condition,{map,mapName,model} or {lens})` → a plan `{ steps }` (with `groupBy` steps for count and aggregate operators) that `executePrismaPlan` resolves to a Prisma `where` · `toSql(condition,{map,model,alias} or {lens})` → `{ sql, params, joins }` (array predicates with conditions throw; run them through `toPrisma` or `check`) · `toWhereSql` / `toLensWhereSql`: a condition, or a lens's row filters, as an inline SQL predicate in the engine's `sql.dialect`.</small>
+<small>API · `toPrisma(condition,{map,mapName,model} or {lens})` → a plan `{ steps }` (with `groupBy` steps for count and aggregate operators) that `executePrismaPlan` resolves to a Prisma `where` · `toSql(condition,{map,model,alias} or {lens})` → `{ sql, params, joins }` for PostgreSQL (array predicates with conditions throw; run them through `toPrisma` or `check`).</small>
 
-### 7 · Builders: headless UI on the lens (`@inixiative/rules-builder`)
+#### Inline predicates
+**Solves:** a rule, or a lens's row filters, as one SQL fragment for a caller that names its own columns and writes its own joins.
+**How:** `toWhereSql` and `toLensWhereSql` write the engine's `sql.dialect`: PostgreSQL by default, MySQL when `engineGlobals` sets `SqlDialect.mysql`. They take `equals`, `notEquals`, `in`, `notIn`, `exists` and `notExists` inside `all`/`any`, and `any`/`all`/`none`/`empty`/`notEmpty` over a to-many relation, written as an `EXISTS` subquery (or read off the caller's own join with `toMany: 'join'`). Any other operator throws and names itself. `toSql` and `toPrisma` are unchanged.
+<small>API · `toWhereSql(condition, { columns, tables?, map, mapName, model })` → one predicate string · `toLensWhereSql(lens, { columns, tables?, toMany? })` → `{ root, relations, mapDefaults }`: the root path's `where`s, each relation path's own, and one predicate per model default.</small>
+
+### 7 · Permissions: who may do what (`@inixiative/permissions`)
+
+#### @inixiative/permissions
+**Solves:** who may do what, decided on your own records: roles, relations and conditions in one engine, with delegation that never outlives whoever granted it, and no second store to sync.
+**How:** a schema maps each resource's actions to an `ActionRule`, all plain JSON, and the checks walk your records through a `SchemaMap`: the resources, the field map (a prisma-map map, as `fieldMap: { models: prismaMap }`) and the polymorphic models' kinds. A **permix** holds what the actor holds, its **permissions**: role grants plus **entitlements**, each backed by its grantor and asked again at every use. `check` decides on a loaded record. The **core** (about a thousand lines) never imports the **helpers** (delegation, hydration). 1.0, by the end of 2026, adds **reflection**: the same rules compiled to Prisma and SQL, so "which records can I read" and "who can read this" are one query each.
+<small>API · `createRebacCheck` · `createPermissions` · `createCanGrantEntitlement`: may this writer hand that entitlement on · `validateActionRule`: check a stored rule before saving · helpers: `delegate` / `capAtRole` / `installPermissions` / `permixOf` / `createHydrator`</small>
+
+### 8 · Transitions: guarded state changes (`@inixiative/transitions`)
+
+#### @inixiative/transitions
+**Solves:** declarative, serializable state-machine **guards + affordances**: "can this record move from A→B, and who may?"
+**How:** a `TransitionMap` (resource → action → `Action`, the OR of its `from`/`to` edges); each side holds a `predicate` `Condition` and an optional `permission` `ActionRule`, and the `to` side an optional `Merge`. `from` is checked against the current record, `to` against the merged one. Predicates are json-rules `Condition`s run by `check`; permissions go through an injected `Authorize` seam, which `createAuthorize` fills from the permissions library. The template has not adopted it yet: template ticket FEAT-018 has the library done and the move of its first consumer, the inquiry status lifecycle, still open.
+<small>API · `checkTransition`: guard a proposed move · `available`: list the legal actions for a record · `eligible` (via `toPrisma`): every record currently eligible for an action · `validateTransition`: check one transition before saving it · `applyMerge` / `isSerializableMerge` · `createAuthorize`.</small>
+
+### 9 · Builders: headless UI on the lens (`@inixiative/rules-builder`)
 
 #### Rule builder
 **Solves:** build/edit a `Condition` **headlessly**: logic in, descriptors out, you render.
@@ -96,35 +137,37 @@ A `LensNarrowing` layer has a `root` (path-specific, from the anchor) and `mapDe
 **How:** enumerates leaf values across relations as dotted paths, with kind and allowed values. A `Json` column is flagged `acceptsSubPath` (it has no declared sub-fields, but the kernel resolves *and* validates a dotted JSON path in `check`/`toPrisma`/`toSql` + `validateRuleInLens`), so a renderer can offer freeform descent, e.g. `metadata` → `metadata.theme`.
 <small>API · `lensValuePicker(lens,{maxDepth})` · `useLensValuePicker` · `LensValueOption.acceptsSubPath` (JSON freeform sub-path).</small>
 
-### 8 · Downstream layers
-
-#### @inixiative/transitions
-**Solves:** declarative, serializable state-machine **guards + affordances**: "can this record move from A→B, and who may?"
-**How:** a `TransitionMap` (resource → action → `Action`, the OR of its `from`/`to` edges); each side holds a `predicate` `Condition` and an optional `permission` `ActionRule`, and the `to` side an optional `Merge`. `from` is checked against the current record, `to` against the merged one. Permissions go through an injected `Authorize` seam (`createAuthorize` adapts the permissions library). Reuses `Condition`/`check` for the predicate instead of re-solving it.
-<small>API · `checkTransition`: guard a proposed move · `available`: list the legal actions for a record · `eligible` (via `toPrisma`): every record currently eligible for an action.</small>
-
-#### @inixiative/permissions
-**Solves:** who may do what, decided on your own records: roles, relations and conditions in one engine, with delegation that never outlives whoever granted it, and no second store to sync.
-**How:** a schema maps each resource's actions to an `ActionRule`, all plain JSON. A **permix** holds what the actor holds, its **permissions**: role grants plus **entitlements**, each backed by its grantor and asked again at every use. `check` decides on a loaded record. The **core** (about a thousand lines) never imports the **helpers** (delegation, hydration). 1.0, by the end of 2026, adds **reflection**: the same rules compiled to Prisma and SQL, so "which records can I read" and "who can read this" are one query each.
-<small>API · `createRebacCheck` · `createPermissions` · `createCanGrantEntitlement`: may this writer hand that entitlement on · `validateActionRule`: check a stored rule before saving · helpers: `delegate` / `capAtRole` / `installPermissions` / `permixOf` / `createHydrator`</small>
-
-#### @inixiative/prisma-map
-**Solves:** the schema reflection the lens reasons over: an ORM-agnostic runtime model map.
-**How:** extracts models, fields, relations, FK direction, and enums from a generated Prisma client (v6 & v7). The `FieldMap` the rest of the stack is authored against.
-
-#### atlas
-**Solves:** navigate the codebase by **concept**, not folders.
-**How:** `@atlas` annotations + a concept graph + `MAP.md`; query by `kind` / `partOf` / `uses` / `path`, or a json-rules predicate.
-
 ### The one-line version
 
-`Condition` is the atom; `FieldMap` is the shape; a **lens** scopes the shape; **sources** turn data into options; `validateRuleInLens` enforces; `toPrisma`/`toSql` push to the store; **builders** edit it headlessly; **transitions** and **permissions** compose it without re-solving it; permissions 1.0 reflects its rules to the store the same way.
+prisma-map supplies the **field map**; `Condition` is the atom written against it; a **lens** scopes the map; **sources** turn data into options; `validateRuleInLens` enforces; `toPrisma`/`toSql`/`toWhereSql` push to the store; **permissions** decides who may act with the same rules; **transitions** guards state changes with both; **builders** edit rules headlessly. Permissions 1.0 reflects its rules to the store the same way.
 
 ---
 
-## Part II · The template
+## Part II · Developer experience
 
-A production SaaS foundation (`@inixiative/template`) that consumes the spine. Teams building a SaaS product rebuild the same concerns on every product: auth, tenancy, permissions, side effects, background work, caching, real-time, audit. The template solves each *once*, names it, and reuses it. Each section opens with the problem that whole layer addresses; each entry is a **concept**, with its methods in a dim `API ·` row.
+*Why: tools for the people and agents working in the code. They change how you find, read, check and release code, and none of them ships in your product. Template's worktrees, init and CI rules belong here too; they are listed with the template in Part III.*
+
+#### atlas (`@inixiative/atlas`)
+**Solves:** find code by concept, role or dependency instead of by folder, with a map that CI keeps true.
+**How:** each file carries an `@atlas` block: `@kind` (its role), `@partOf` (its concepts), `@uses` (the dependencies it relies on) and `@constructs`. Blocks are checked against the repo's `.atlas/` registry (`config.ts` for stamp and include rules, `kinds.ts` for the role vocabulary, `concepts.ts` for the concepts), and `MAP.md` is generated from them. Agent hooks print a file's concept neighbourhood on every Read and Grep.
+<small>CLI · `init` · `graph` (reverse indexes) · `query` (by kind / partOf / uses / path / json-rules) · `check` and `coverage` (CI) · `generate` (write `MAP.md`) · `report` (`COVERAGE.md` and `atlas.html`) · `stamp` (fill derivable axes) · `hook read` / `hook grep` (agent hooks) · `setup`</small>
+
+#### gloss (`@inixiative/gloss`)
+**Solves:** source files free of comments, with the explanations still beside the code for when the code leaves you confused.
+**How:** commentary lives in a mirrored sidecar under `.gloss/` (`src/foo.ts` → `.gloss/src/foo.ts.md`), one section per symbol, committed and reviewed like docs. Source keeps only daggers that mark a note exists (`// gloss`, `// gloss:file`), machine directives and the rare one-line `// why:`. The harvester moves every other comment into the sidecar at commit, and `gloss read` dates each note against its symbol's git history, so you can see when a note is older than the code.
+<small>CLI · `lint` · `check` (dagger and section audit, blocking in CI) · `fix` · `harvest --staged` (pre-commit) · `watch` · `read` · `history` · `setup` · `hook read` / `hook grep` (agent hooks)</small>
+
+#### config (`@inixiative/config`)
+**Solves:** one toolchain, one blessed set of versions, one set of local ports and one look across every inixiative repo.
+**How:** TypeScript, Biome, tsup and lefthook presets; a version manifest (`versions.json`) naming the blessed version of each package per lane; the port registry (`ports.json`: a service's default port plus 100 per project); and the theme. `check` fails CI on drift, retired terms in public copy included, and `sync` fixes it. `train` is the release cascade: the `primitives` lane ships first, then `agentic`; each new version is recorded as a candidate, adopted by the repos that depend on it, then blessed.
+<small>Theme · `theme/public.css` (the brand: base, `--app-*` slots, status, UI and type tokens, fonts) · `theme/marketing.css` (fluid type scale, spacing, section rhythm, motion) · `theme/domains.css` (four palettes on one structure, set by `data-domain`: agentic, building-blocks, governance, inixiative) · `theme/status.css` (thread and work status and badge layers, for apps that show agent work)</small>
+<small>CLI · `check` · `sync` · `scan` · `train --lane=primitives|agentic` · `ports [project]`</small>
+
+---
+
+## Part III · The template
+
+A production SaaS foundation (`@inixiative/template`) built on the building blocks in Part I. Teams building a SaaS product rebuild the same concerns on every product: auth, tenancy, permissions, side effects, background work, caching, real-time, audit. The template solves each *once*, names it, and reuses it. Each section opens with the problem that whole layer addresses; each entry is a **concept**, with its methods in a dim `API ·` row.
 
 ### Core platform & build
 
@@ -184,7 +227,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. T
 
 *Why: correctness, type safety and consistency are decided in the database layer. These primitives make Prisma transactional by default and introspectable at runtime, and they reject or disable the writes that would skip hooks.*
 
-- **prismaMap (`@inixiative/prisma-map`)**: generated runtime model/field/relation map; powers hooks, factories, lenses.
+- **prismaMap (`@inixiative/prisma-map`, Part I §1)**: the runtime model/field/relation map built from the generated client; hooks, factories, lenses and the permission checks read it.
 - **Model name utilities**: `ModelName` ↔ `AccessorName` conversion. <small>API · `isModelName` · `isAccessorName`</small>
 - **UUIDv7 IDs**: time-sortable PKs without coordination; better index locality than v4.
 - **db client (txn-aware proxy)**: routes to the active transaction when present, else raw. <small>API · `db.scope` · `db.txn` (auto-merging) · `db.onCommit` (after-commit side effects) · `db.findForUpdate` (row lock, txn-only) · `db.raw.*` (bypass)</small>
@@ -289,6 +332,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. T
 - **Redis connection strategy**: main shared client + dedicated subscriber + BullMQ's own. <small>API · `createRedisConnection` · `getRedisClient`/`getRedisSub`</small>
 - **redisNamespace**: central key-prefix map (`bull`/`cache`/`cacheWritten`/`job`/`ws`/`otp`/`session`/`limit`/`lock`/`lane`/`rollingCache`).
 - **Cache**: get-or-set memoization with TTL; concurrent misses on one key compute once (a single-flight lock) and null results get a short TTL; canonical `cache:{accessor}:{field}:{value}[:tags][:*]` keys; a reverse-reference map clears the right keys on mutation. <small>API · `cache` · `checkCache` · `upsertCache` · `cacheKey` (a key containing `undefined` is refused on read and write) · `clearKey` (exact/wildcard) · `flushRedis` (tests, which run on an in-memory ioredis-mock)</small>
+- **Rolling cache**: a value computed from stored data only to serve it fast (a count, a rollup, a picker's vocabulary read on every load) is a rolling cache, not a table. It recomputes on a fixed interval, and its entries outlive the longest a refresh can take, so a read always hits and there is no invalidation to write. One definition, in the module that owns the data, declares its `targets` (a model's own Prisma `findMany` args; each row is one refresh), its results and its interval, and is registered in `apps/api/src/lib/rollingCaches.ts` (CI rule `rolling-cache-registered`). A read never computes. <small>API · `makeRollingCache` · `checkRollingCache` (the api read: on a miss it queues that target's refresh and returns the channel to wait on) · `read` / `refresh` on a cache · jobs `coordinateRollingCaches` (root, every minute) → `refreshRollingCache` (branch, one per cache) → `refreshRollingCacheTarget` (leaf, one per target, starts spread over `spreadSeconds`)</small>
 
 ### Realtime / websockets
 
@@ -368,6 +412,7 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. T
 - **redact (GDPR)**: anonymize user PII while preserving referential integrity.
 - **inquiry**: generic request/approval/audit primitive; polymorphic source/target, per-type handler, status state machine.
 - **InquiryType / handler**: `inviteOrganizationUser`/`createSpace`/`updateSpace`/`transferSpace`; a handler = content+resolution schemas + `handleApprove`/`autoApprove`/`unique`/expiry.
+- **transferSpace**: an inquiry from a Space to an Organization. Approving it moves the space and everything downstream into the target org in one transaction: members who are also in the target org keep their space membership and everything they own there, every other member is soft-deleted with their rows, and one Space update re-keys the rest. The old org keeps nothing of the space.
 - **contact + ContactType (~22)**: one polymorphic-owner model for phone/email/social handles; per-type registry def; deliverability + `acceptedKinds`.
 - **customerRef**: false-polymorphic customer ↔ provider link; each side a User, Organization or Space.
 - **webhookSubscription / webhookEvent**: owner-polymorphic outbound subscriptions; per-attempt delivery ledger (RSA-signed).
@@ -375,6 +420,8 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. T
 - **cronJob**: DB-defined scheduled jobs (pattern/handler/payload/enabled, retry config).
 - **token / authProvider / account / session / verification**: API keys / org auth config / external credentials / BetterAuth's session schema (handshake sessions live in Redis) / verification values.
 - **tag / tagCategory / tagAttachment**: owner-scoped labels grouped by category, attached to resources.
+- **project**: a taggable unit of work (a name, an optional description) owned by any of the five owners (`ProjectOwnerModel`: User, OrganizationUser, Organization, Space, SpaceUser), its name unique per owner. Each owner kind has its own create and list (`meCreateProject` … `spaceUserReadManyProjects`).
+- **Owner lists**: one list per owner kind returns exactly that owner's rows, filtered by the same placement the permission check used (`placeSubmodel` → `submodelOwnerWhere`), so an organization's list leaves out its members' rows. Members get their own token and integration lists (`/organizationUser/{id}/tokens`, `/spaceUser/{id}/integrations`, …), read by the member and the organization's owner; `/me/tokens` lists every token that is yours.
 - **batch**: multi-request execution with strategies, interpolation, and `BatchStatus`.
 - **entitlements / invitations**: entitlements are action grants beyond a role (see Authorization); invitation = the `inviteOrganizationUser` inquiry.
 - **admin / superadmin surfaces**: privileged cross-tenant listing/management; `superadmin` app + permission bypass.
@@ -400,17 +447,9 @@ A production SaaS foundation (`@inixiative/template`) that consumes the spine. T
 - **frontendLogger**: browser-safe logger, never crosses with the server logger. <small>API · `createFrontendLogger`</small>
 - **OpenTelemetry / Sentry**: logs, traces and metrics to any OTLP destination (exported in hosted environments when an endpoint is configured; local and test only with `OTEL_ENABLED=true`); Sentry error reporting behind the errorReporter adapter.
 
-### Atlas: the code map
-
-*Why: a large codebase is unnavigable by folders alone. Atlas lets you find code by concept/role/dependency and enforces that the map stays true.*
-
-- **atlas**: navigate by concept not folders: `@atlas` annotations + `.atlas/` registry + generated `MAP.md`. <small>CLI · `graph` (reverse indexes) · `query` (by kind/partOf/uses/path/json-rules) · `generate` (write `MAP.md`) · `stamp` (fill derivable axes) · `check`/`coverage` (CI) · `hook read` / `hook grep` (agent hooks)</small>
-- **`@atlas` block**: per-file `@kind` (role) / `@partOf` (concepts) / `@uses` (the dependencies it relies on) / `@constructs`.
-- **`.atlas/` config**: `config.ts` (stamp/include rules), `kinds.ts` (role vocab), `concepts.ts` (concept registry).
-
 ---
 
-## Part III · Agentic
+## Part IV · Agentic
 
 The tools that carry what you've already decided into every agent session, and the hosted hub they connect through. Product lines are in the [org profile](https://github.com/inixiative/.github/blob/main/profile/README.md); this part names the words.
 
@@ -433,7 +472,11 @@ The tools that carry what you've already decided into every agent session, and t
 - **Project**: what an owner organizes work around: a name, an optional description, tags. A Signet names the projects it may be used in, and a Foundry project links to one Kingdom project.
 - **Integration**: a provider connected to an owner (GitHub, Slack, a Claude or Codex subscription, a Foundry, an Archive). Its **Credential** is what Kingdom uses to call the provider: encrypted, outbound, never handed out. A Kingdom **Token** is a different thing: a key for Kingdom's own API, with a role.
 - **Signet**: the only grant for using an integration: which resources and operations, through which lens, within which limits, until it's revoked. Its authority comes from its owner. It's presented with an enrolled key, and what's done through it is recorded as usage. `@inixiative/signet` (MIT) is pass-through execution with tracking and audit, built on the permissions library.
+- **Signet grant**: one row per resource on a Signet's revision (`SignetResourceGrant`, for an integration resource or a project). Each row holds an operation selection (picks and omits over the integration's operation map: each model, then its operations and its events) and a json-rules lens narrowing over the integration's base lens for that model; no lens means the base. Every scope change is a new revision, and each revision applies at once. Recipients are never restricted: a grantor keeps an operation from one by leaving it out.
 - **KCP** *(in progress)*: the Kingdom CLI Proxy. Your provider CLIs run through Kingdom with no credentials on your machine; Kingdom runs the command and streams the output back. MIT.
+- **Subscription login and capacity pool**: Kingdom holds your Claude and Codex logins, each an integration on a personal owner. A project gets a pool (`CapacityPool`); for each run Kingdom picks a login from it (`RunBinding`) and releases its token, through a Signet (`subscription.use`), to a Foundry of the same owner. The machine runs the real harness with it, so inference never passes through Kingdom.
+- **Integration events**: the integration owns the provider subscription (a webhook, or a poll where the provider has none), so nothing is set up on your machine. Each event reaches every Signet whose grant selects it, cut to the event's base lens and, where the resource takes one, filtered by the grant's own lens. It arrives as a live stream the holder opens over a WebSocket. With no holder connected it goes nowhere: there is no backlog. Built for GitHub (organization webhooks and a person's notifications poll), Slack (Events API) and Linear (webhooks Kingdom creates).
+- **Artifactory** *(planned)*: one shared place to publish AI artifacts (guides, skill files, generated pages), signing in with Kingdom, which also decides who may see what. No code yet.
 
 ### Sessions and the loop
 
