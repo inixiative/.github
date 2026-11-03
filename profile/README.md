@@ -16,26 +16,29 @@ I'm Aron Greenspan. These repos are a decade of lessons from building software, 
 
 **Stop rediscovering what you need to build.**
 
-On every product I built, I had to answer the same questions: who can see this record, which state change is allowed right now, how one rule runs in memory, in Prisma and in SQL. These libraries are the answers, and template puts them together. Six of the libraries run in production at the company where I work.
+On every product I built, I had to answer the same questions: who can see this record, which state change is allowed right now, how one rule runs in memory, in Prisma and in SQL. The libraries below are the answers, the developer tooling keeps the code legible, and template puts them together. Six of these packages run in production at the company where I work.
 
 ### template
 
-Like shadcn, but for the whole SaaS backend. You start from it and own the code. It runs on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. If your coding agent writes its own versions instead, Foundry points it back at these.
+Like shadcn, but for the whole SaaS app. You start from it and own the code: an API, web, admin and superadmin apps and a shared UI package on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. If your coding agent writes its own versions instead, Foundry points it back at these.
 
 [GitHub](https://github.com/inixiative/template)
 
-### The packages
+### The libraries
 
-In dependency order.
+Rules, permissions and lifecycles, in dependency order.
 
 - **[json-rules](https://github.com/inixiative/json-rules)**: one rule AST compiles to in-memory checks, Prisma queries and SQL `WHERE` clauses. Serializable, with type-safe operators, paths and binding.
 - **[permissions](https://github.com/inixiative/permissions)**: RBAC, ABAC and ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. About a thousand lines of core.
 - **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
 - **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
-- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations; `atlas check` fails CI when they drift.
 - **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
-- **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
+
+### Developer tooling
+
+- **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations; `atlas check` fails CI when they drift.
 - **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.
+- **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
 
 Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemind), [conditional-form](https://github.com/inixiative/conditional-form).
 
