@@ -48,13 +48,14 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 ## inixiative
 
 - Line: **Technology for cooperation.**
-- Three sections, in this order: **Building blocks** · **Agentic** · **Governance** (Aron, 2026-11-02): the building blocks are the base, the agentic tools help people and their agents use them, and governance (tools for cooperation) is the long-term goal.
+- Four sections, in this order: **Building blocks** · **Developer experience** · **Agentic** · **Governance** (Aron, 2026-11-02). Building blocks are what ships in your product: template and the packages. Developer experience is what helps you work on the code and never ships in the product: atlas, gloss, config, and template's worktrees, init and CI rules (Aron: "they're not building blocks. They're things to help me, but they don't actually affect the code at all."). The agentic tools help people and their agents use the building blocks. Governance (tools for cooperation) is the long-term goal.
 - **The story, in this order (Aron, 2026-11-02).** Every surface that introduces inixiative tells it, in two sentences or in a page. Aron speaks in the first person singular where the copy is his.
-  1. **The building blocks are a decade of lessons, packaged.** Aron: "It's a decade of lessons learned and making my work portable, and not having to figure things out every time." Template and the libraries are those answers, so you start from them instead of rediscovering them. Six of these packages (json-rules, transitions, prisma-map, rules-builder, atlas, gloss) run in production at the company where Aron works. Say that; don't name the company.
+  1. **The building blocks are a decade of lessons, packaged.** Aron: "It's a decade of lessons learned and making my work portable, and not having to figure things out every time." Aron's framing: across his career he kept running into the same shapes of problem; people built one-off solutions for each, often right next to another problem with the same shape; he built the best-shaped reusable solution for each. Describe template by the problems it solves (sign-in, organizations and spaces, permissions, field-level encryption with key rotation, audit log, jobs, signed webhooks, live data, email, a typed API client), never by line or test counts (Aron: "Who cares about the number of lines… How many problems does it solve?"). Then the packages for the most common problems: prisma-map (your schema at runtime), json-rules (the rules engine), permissions (the library), transitions (lifecycles), rules-builder (the builders). json-rules, transitions, prisma-map and rules-builder run in production at the company where Aron works (atlas and gloss too, as developer experience). Say that; don't name the company.
   2. **Coding agents ignore the answers, so Foundry exists.** Agents build parallel versions of what the codebase already has (on 2026-10-18 an agent built a second auth path in Kingdom beside the existing one). Aron: "If you were able to use the template, fine. I wouldn't need to have built Foundry." Foundry's Wardens point the agent at what exists. Kingdom, Archive, Signet, KCP and Oracle come from the same problem; keep them to a line each.
   3. **Governance is where it goes:** tools for people, and their agents, to cooperate. "Technology for cooperation."
   Why: on 2026-11-02 Aron found the public copy read like an internal plan (three doors, a layer diagram) and didn't say why any of it exists.
-- **No internal jargon in public copy (Aron, 2026-11-02).** Never "door(s)", "domain", "palette", "data-domain", "Layer 1 / Layer 2", and never "regions" or "chorus" without a plain explanation (say "Wardens are built from your docs, one per topic"). The theme notes below (`data-domain`, colours) are for builders, not readers. Use the plain section names: Building blocks, Agentic, Governance.
+- **No internal jargon in public copy (Aron, 2026-11-02).** Never "door(s)", "domain", "palette", "data-domain", "Layer 1 / Layer 2", and never "regions" or "chorus" without a plain explanation (say "Wardens are built from your docs, one per topic"). The theme notes below (`data-domain`, colours) are for builders, not readers. Use the plain section names: Building blocks, Developer experience, Agentic, Governance.
+- Don't mention Muse in public copy (Aron, 2026-11-02: "I wouldn't even mention Muse in the agentic section."). Where a list of runtimes is needed, say "Claude Code and Codex". Technical reference that documents Muse support (an adapter table) stays.
 - Never mention Tribe on any public surface (Aron, 2026-11-02).
 - People: **Contributors: Aron Greenspan.** Aron Greenspan only, for now (Aron, 2026-11-02: "No one else has really contributed."). Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
 - Mark: keep the current `<iXi>` exactly. The only allowed changes are outlining it to paths and a tighter favicon.
@@ -71,12 +72,17 @@ Theme: `data-domain="building-blocks"`, amber.
   - **transitions:** declarative lifecycles on json-rules.
   - **rules-builder:** a headless builder that offers only what the engine can run.
   - **prisma-map**.
-- Two groups, with template on top consuming them (Aron, 2026-11-02):
-  - **The libraries**, in dependency order from the bottom up: prisma-map → json-rules → permissions → transitions → rules-builder (Aron, 2026-11-02). prisma-map is the core primitive json-rules and permissions read the schema through; transitions builds on permissions. The earlier order in this file was wrong and spread to every surface.
-  - **Developer tooling**, in this order: atlas (a map of your code), gloss (explanations kept out of the source), config (the shared toolchain and theme).
-  - **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
-  - **gloss:** comment-free source with sidecar explanations.
-  - **config:** the shared toolchain and theme.
+- Building blocks are template and the packages that ship in your product (Aron, 2026-11-02):
+  - **The packages**, in dependency order from the bottom up: prisma-map → json-rules → permissions → transitions → rules-builder (Aron, 2026-11-02). prisma-map is the core primitive json-rules and permissions read the schema through; transitions builds on permissions. The earlier order in this file was wrong and spread to every surface.
+
+## Developer experience
+
+Its own section, after Building blocks; it can be smaller. Nothing here ships in your product.
+
+- **atlas:** a codebase map from `@atlas` annotations; `atlas check` fails CI when they drift.
+- **gloss:** comment-free source with sidecar explanations.
+- **config:** the shared toolchain and theme.
+- **Comes with template:** worktrees (`bun run worktree:create`: each gets its own databases, Redis database, storage buckets and ports), init (a guided setup that provisions a new project's services and keeps secrets in Infisical) and CI rules (repo-owned checks run by `bun run check`).
 
 ## Agentic
 
@@ -88,9 +94,9 @@ Theme: `data-domain="agentic"`, lime.
   - The model and the harness are outside your control. Your corpus (docs, rules, CLAUDE.md) is the only layer you control, and Foundry gives you a tool to control it.
   - The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically.
   - In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Cite them as "early runs" with no invented stats. Oracle runs the tuning loop.
-- **Foundry** (source-available, BSL 1.1) is the workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. Its pitches, in order:
+- **Foundry** (source-available, BSL 1.1) is the workspace around your agent: Claude Code and Codex, plus ACP apps. Its pitches, in order:
   1. **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides. (Built; off by default.)
-  2. **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions; a worker per thread; every session captured.
+  2. **Every agent you pay for, in one place.** Claude Code and Codex on your own subscriptions; a worker per thread; every session captured.
   3. **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. (Host side built; joiner view in progress.)
   4. **Stop checking a dozen apps.** Whatever comes in (a Slack DM, a review request, an email) reaches you already researched and in context. It's read as data, so it can't instruct your agent. (In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)
   5. **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. (In progress.)
@@ -101,7 +107,7 @@ Theme: `data-domain="agentic"`, lime.
 - **KCP, the Kingdom CLI Proxy** (open, MIT; **in progress**): built so far: `kcp login`, `status` and `map`. Next: Kingdom runs your provider CLIs with its stored credentials and streams the output back, so none sit on your machine. Don't claim it works end to end yet.
 - **Archive** (open, MIT): keeps every agent session, local-first, and syncs to the archives you choose.
 - **Oracle** (closed): measures whether a correction stuck and tunes the docs and Wardens (the loop). Give it one line, and never describe its method, fixtures or scoring.
-- **agent-session** (open, MIT): drive Claude Code, Codex and Muse as persistent streaming sessions behind one interface.
+- **agent-session** (open, MIT): drive Claude Code and Codex as persistent streaming sessions behind one interface.
 - **bench** ("Do I Still Have a Job?"): our own challenge set for coding agents, staff to architect tiers. It is its own thing, not proof for Foundry. Its results are from June: show the date, and say more challenges are coming.
 
 Prior work: Foundry is not the first system to turn corrections into lasting guidance. Trace (arXiv 2606.13174) is the nearest prior work. State what is different; never claim "nobody else".
