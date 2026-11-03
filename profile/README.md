@@ -8,15 +8,19 @@
   <a href="#building-blocks">Building blocks</a> · <a href="#agentic">Agentic</a> · <a href="#governance">Governance</a>
 </p>
 
+I'm Aron Greenspan. These repos are a decade of lessons from building software, packaged so I don't have to figure the same things out on every project. The building blocks are those answers. Coding agents ignored them and wrote parallel versions, so I built Foundry to point them at what the codebase already has. The long-term goal is tools for people, and their agents, to cooperate.
+
 ---
 
 ## Building blocks
 
 **Stop rediscovering what you need to build.**
 
+On every product I built, I had to answer the same questions: who can see this record, which state change is allowed right now, how one rule runs in memory, in Prisma and in SQL. These libraries are the answers, and template puts them together. Six of the libraries run in production at the company where I work.
+
 ### template
 
-Like shadcn, but for the whole SaaS backend. You start from it and own the code. It runs on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. To get your agent to use what's here, use the agentic level.
+Like shadcn, but for the whole SaaS backend. You start from it and own the code. It runs on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. If your coding agent writes its own versions instead, Foundry points it back at these.
 
 [GitHub](https://github.com/inixiative/template)
 
@@ -43,7 +47,7 @@ Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemi
 
 **An agent that works like you do.** Giving your work a voice.
 
-Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
+Coding agents kept writing their own versions of what my repos already had, such as a second auth path beside the existing one. Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
 
 ### Foundry
 
@@ -101,7 +105,7 @@ Our own challenge set for coding agents, from staff to architect tiers. Results 
 
 ## Governance
 
-Designs for cooperation at scale: how groups set rules, hold each other accountable, and invest together without a central referee.
+The long-term goal is tools for people, and their agents, to cooperate. The whitepaper and the proposals are designs for cooperation at scale: how groups set rules, hold each other accountable, and invest together without a central referee.
 
 [The proposals](https://www.inixiative.com/proposals) · [whitepaper on GitHub](https://github.com/inixiative/whitepaper)
 

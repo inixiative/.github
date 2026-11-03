@@ -48,7 +48,13 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 ## inixiative
 
 - Line: **Technology for cooperation.**
-- Three sections, in this order: **Building blocks** · **Agentic** · **Governance** (Aron, 2026-11-02): the building blocks are the base, the agentic tools help people and their agents use them, and governance (tools for cooperation) is the long-term goal. Never call them "doors" in public copy.
+- Three sections, in this order: **Building blocks** · **Agentic** · **Governance** (Aron, 2026-11-02): the building blocks are the base, the agentic tools help people and their agents use them, and governance (tools for cooperation) is the long-term goal.
+- **The story, in this order (Aron, 2026-11-02).** Every surface that introduces inixiative tells it, in two sentences or in a page. Aron speaks in the first person singular where the copy is his.
+  1. **The building blocks are a decade of lessons, packaged.** Aron: "It's a decade of lessons learned and making my work portable, and not having to figure things out every time." Template and the libraries are those answers, so you start from them instead of rediscovering them. Six of the libraries (json-rules, transitions, prisma-map, rules-builder, atlas, gloss) run in production at the company where Aron works. Say that; don't name the company.
+  2. **Coding agents ignore the answers, so Foundry exists.** Agents build parallel versions of what the codebase already has (on 2026-10-18 an agent built a second auth path in Kingdom beside the existing one). Aron: "If you were able to use the template, fine. I wouldn't need to have built Foundry." Foundry's Wardens point the agent at what exists. Kingdom, Archive, Signet, KCP and Oracle come from the same problem; keep them to a line each.
+  3. **Governance is where it goes:** tools for people, and their agents, to cooperate. "Technology for cooperation."
+  Why: on 2026-11-02 Aron found the public copy read like an internal plan (three doors, a layer diagram) and didn't say why any of it exists.
+- **No internal jargon in public copy (Aron, 2026-11-02).** Never "door(s)", "domain", "palette", "data-domain", "Layer 1 / Layer 2", and never "regions" or "chorus" without a plain explanation (say "Wardens are built from your docs, one per topic"). The theme notes below (`data-domain`, colours) are for builders, not readers. Use the plain section names: Building blocks, Agentic, Governance.
 - People: **Contributors: Aron Greenspan.** Aron Greenspan only, for now (Aron, 2026-11-02: "No one else has really contributed."). Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
 - Mark: keep the current `<iXi>` exactly. The only allowed changes are outlining it to paths and a tighter favicon.
 
@@ -57,7 +63,7 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 Theme: `data-domain="building-blocks"`, amber.
 
 - Line: **Stop rediscovering what you need to build.**
-- Template is "like shadcn, but for the whole SaaS backend": you start from it and own the code. To get your agent to use the blocks, use the agentic level.
+- Template is "like shadcn, but for the whole SaaS backend": you start from it and own the code. If a coding agent writes its own versions instead, Foundry points it back at the blocks.
 - Show why each block is better, with specifics:
   - **json-rules:** one rule AST compiles to in-memory checks, Prisma queries and SQL WHERE. Rules are serializable, with type-safe operators, paths and binding.
   - **permissions:** RBAC + ABAC + ReBAC with entitlements and delegates, decided on your own records with no separate store to sync. The core is about 1k lines.
