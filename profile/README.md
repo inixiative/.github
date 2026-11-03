@@ -5,7 +5,7 @@
 <p align="center"><strong>Technology for cooperation.</strong></p>
 
 <p align="center">
-  <a href="#building-blocks">Building blocks</a> · <a href="#agentic">Agentic</a> · <a href="#governance">Governance</a>
+  <a href="#building-blocks">Building blocks</a> · <a href="#developer-experience">Developer experience</a> · <a href="#agentic">Agentic</a> · <a href="#governance">Governance</a>
 </p>
 
 I'm Aron Greenspan. These repos are a decade of lessons from building software, packaged so I don't have to figure the same things out on every project. The building blocks are those answers. Coding agents ignored them and wrote parallel versions, so I built Foundry to point them at what the codebase already has. The long-term goal is tools for people, and their agents, to cooperate.
@@ -16,17 +16,17 @@ I'm Aron Greenspan. These repos are a decade of lessons from building software, 
 
 **Stop rediscovering what you need to build.**
 
-On every product I built, I had to answer the same questions: who can see this record, which state change is allowed right now, how one rule runs in memory, in Prisma and in SQL. The libraries below are the answers, the developer tooling keeps the code legible, and template puts them together. Six of these packages run in production at the company where I work.
+Across my career I kept running into the same shapes of problem. More often than not, people built a one-off solution for each, often right next to another problem with the same shape. I pulled those problems out and built the best-shaped solution I could for each, so it can be reused wherever that problem shows up. Template is where they come together, and the packages below handle the most common problems on their own. json-rules, transitions, prisma-map and rules-builder run in production at the company where I work.
 
 ### template
 
-Like shadcn, but for the whole SaaS app. You start from it and own the code: an API, web, admin and superadmin apps and a shared UI package on Bun, Hono, Prisma 7 and React, with auth, multi-tenancy, permissions, jobs, audit logging and field-level encryption already wired in. If your coding agent writes its own versions instead, Foundry points it back at these.
+Like shadcn, but for the whole SaaS app. You start from it and own the code: an API, web, admin and superadmin apps and a shared UI package on Bun, Hono, Prisma 7 and React. It already solves sign-in with email, OAuth and API tokens; organizations and spaces with roles; permissions; field-level encryption with key rotation; an audit log; background jobs; signed webhooks with retries; live data over WebSockets; email templates and delivery; and a typed API client generated from the routes. If your coding agent writes its own versions instead, Foundry points it back at these.
 
 [GitHub](https://github.com/inixiative/template)
 
-### The libraries
+### The packages
 
-Rules, permissions and lifecycles, in dependency order from the bottom up.
+The engine, the library and the builders for the most common problems, in dependency order from the bottom up.
 
 - **[prisma-map](https://github.com/inixiative/prisma-map)**: a runtime model map (fields, relations, foreign-key direction, enums) from a generated Prisma client.
 - **[json-rules](https://github.com/inixiative/json-rules)**: one rule AST compiles to in-memory checks, Prisma queries and SQL `WHERE` clauses. Serializable, with type-safe operators, paths and binding.
@@ -34,13 +34,23 @@ Rules, permissions and lifecycles, in dependency order from the bottom up.
 - **[transitions](https://github.com/inixiative/transitions)**: declarative lifecycles on json-rules. Which move is legal now, for this actor, on this record.
 - **[rules-builder](https://github.com/inixiative/rules-builder)**: a headless rule builder that offers only what the engine can run. [Live demo](https://www.inixiative.com/rules-builder/).
 
-### Developer tooling
+Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemind), [conditional-form](https://github.com/inixiative/conditional-form).
+
+---
+
+## Developer experience
+
+Tools for working on the code. None of them ships in your product.
 
 - **[atlas](https://github.com/inixiative/atlas)**: a codebase map built from `@atlas` annotations; `atlas check` fails CI when they drift.
 - **[gloss](https://github.com/inixiative/gloss)**: comment-free source, with explanations in a sidecar tree.
 - **[config](https://github.com/inixiative/config)**: the shared toolchain and theme for every repo here, with a CLI that checks, syncs and releases them together.
 
-Paused, not recommended for use: [hivemind](https://github.com/inixiative/hivemind), [conditional-form](https://github.com/inixiative/conditional-form).
+Comes with template:
+
+- **Worktrees:** `bun run worktree:create` gives each worktree its own Postgres databases, Redis database, storage buckets and ports, so several branches or agents run side by side.
+- **Init:** a guided setup in the terminal that provisions a new project's services (GitHub, PlanetScale, Railway, Vercel, Cloudflare, Resend) and keeps their secrets in Infisical.
+- **CI rules:** checks the repo owns, run by `bun run check`, that fail when code skips a system the repo already has or a doc names something that no longer exists.
 
 **[Full vocabulary](https://www.inixiative.com/vocabulary.html)** of every primitive ([source](https://github.com/inixiative/.github/blob/main/VOCABULARY.md)).
 
@@ -54,10 +64,10 @@ Coding agents kept writing their own versions of what my repos already had, such
 
 ### Foundry
 
-The workspace around your agent: Claude Code, Codex and Muse, plus ACP apps. The voice of the codebase.
+The workspace around your agent: Claude Code and Codex, plus ACP apps. The voice of the codebase.
 
 - **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides. *(Built; off by default. Turn the chorus on in settings.)*
-- **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions, a worker per thread, every session captured.
+- **Every agent you pay for, in one place.** Claude Code and Codex on your own subscriptions, a worker per thread, every session captured.
 - **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Host side built; joiner view in progress.)*
 - **Stop checking a dozen apps.** Whatever comes in (a Slack DM, a review request, an email) reaches you already researched and in context. It's read as data, so it can't instruct your agent. *(In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)*
 - **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. *(In progress.)*
@@ -94,7 +104,7 @@ Measures whether a correction stuck, and tunes the docs and Wardens.
 
 ### agent-session
 
-Drive Claude Code, Codex and Muse as persistent streaming sessions behind one interface.
+Drive Claude Code and Codex as persistent streaming sessions behind one interface.
 
 [GitHub](https://github.com/inixiative/agent-session) · [npm](https://www.npmjs.com/package/@inixiative/agent-session)
 

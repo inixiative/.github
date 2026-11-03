@@ -457,7 +457,7 @@ The tools that carry what you've already decided into every agent session, and t
 
 *Why: one big prompt loses instructions in the sauce. Many narrow experts, each holding one part of how the codebase works, stay sharp and point the agent at what already exists.*
 
-- **Foundry**: the workspace around your agent: Claude Code, Codex and Muse as workers, ACP apps (Paseo, T3 Code, Zed) as clients. It runs locally on your own subscriptions and wraps each thread with Wardens. The app is source-available (BSL 1.1); its core engine (`@inixiative/foundry-core`) and ACP adapter (`@inixiative/foundry-acp`) are MIT.
+- **Foundry**: the workspace around your agent: Claude Code and Codex as workers, ACP apps (Paseo, T3 Code, Zed) as clients. It runs locally on your own subscriptions and wraps each thread with Wardens. The app is source-available (BSL 1.1); its core engine (`@inixiative/foundry-core`) and ACP adapter (`@inixiative/foundry-acp`) are MIT.
 - **Warden**: an expert on one region of the codebase, built from that region's docs. On each turn it answers whether the moment touches its region and, if so, points at what already exists and where it's written. It comments; it never blocks. A Warden that times out stays silent for that turn, and the thread shows it.
 - **Chorus**: a project's set of region Wardens, asked every turn. Each project has its own.
 - **Layer 1 / Layer 2**: the chorus's two steps. Layer 1 (Haiku) detects: is this moment in my region, with a one-line why. On each yes, Layer 2 (Sonnet) confirms and picks the thing and where it's written. Layer 2 doesn't see Layer 1's why.
@@ -483,5 +483,5 @@ The tools that carry what you've already decided into every agent session, and t
 *Why: corrections only compile into docs if the sessions they happened in are kept, and only matter if they stop recurring.*
 
 - **Archive**: keeps every agent session, local-first, and syncs to the archives you choose. MIT.
-- **agent-session**: drives Claude Code, Codex and Muse as persistent streaming sessions behind one interface. MIT.
+- **agent-session**: drives Claude Code and Codex as persistent streaming sessions behind one interface. MIT.
 - **Oracle**: measures whether a correction stuck, and tunes the docs and Wardens. Closed.
