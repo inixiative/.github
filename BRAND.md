@@ -49,7 +49,7 @@ Vary paragraph length. Put the most important item in a list where it reads as m
 
 - Line: **Technology for cooperation.**
 - Three doors, in this order: **Agentic** · **Building blocks** · **Governance**.
-- People: **Contributors: Aron Greenspan, Will Lawton.** Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
+- People: **Contributors: Aron Greenspan.** Aron Greenspan only, for now (Aron, 2026-11-02: "No one else has really contributed."). Don't use "founder" or "co-founder" labels. Don't write "available for work", a hiring pitch or employer names.
 - Mark: keep the current `<iXi>` exactly. The only allowed changes are outlining it to paths and a tighter favicon.
 
 ## Agentic
@@ -66,7 +66,7 @@ Theme: `data-domain="agentic"`, lime.
   1. **Stop repeating yourself to Claude.** What you've already decided reaches every session. Wardens notice what your request touches and point at what your codebase already has and where it's written down. They never block; your agent decides. (Built; off by default.)
   2. **Every agent you pay for, in one place.** Claude Code, Codex and Muse on your own subscriptions; a worker per thread; every session captured.
   3. **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. (Host side built; joiner view in progress.)
-  4. **Stop checking a dozen apps.** Your agent will bring you the GitHub, Slack and Linear events that need you. (In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)
+  4. **Stop checking a dozen apps.** Whatever comes in (a Slack DM, a review request, an email) reaches you already researched and in context. It's read as data, so it can't instruct your agent. (In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)
   5. **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. (In progress.)
 
   Subhead option: "The voice of the codebase."
