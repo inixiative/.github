@@ -447,10 +447,10 @@ The tools that carry what you've already decided into every agent session, and t
 
 ### Foundry and the chorus
 
-*Why: one big prompt loses instructions in the sauce. Many narrow experts, each holding one part of how the codebase works, stay sharp and point the agent at what already exists.*
+*Why: one big prompt loses instructions in the sauce. Many narrow experts, each holding one part of how the codebase works, stay sharp and remind the agent of what already exists.*
 
 - **Foundry**: the workspace around your agent: Claude Code and Codex as workers, ACP apps (Paseo, T3 Code, Zed) as clients. It runs locally on your own subscriptions and wraps each thread with Wardens. The app is source-available (BSL 1.1); its core engine (`@inixiative/foundry-core`) and ACP adapter (`@inixiative/foundry-acp`) are MIT.
-- **Warden**: an expert on one region of the codebase, built from that region's docs. On each turn it answers whether the moment touches its region and, if so, points at what already exists and where it's written. It comments; it never blocks. A Warden that times out stays silent for that turn, and the thread shows it.
+- **Warden**: an expert on one region of the codebase, built from that region's docs. On each turn it answers whether the moment touches its region and, if so, reminds the main agent what already exists and where it's written. It comments; it never blocks. A Warden that times out stays silent for that turn, and the thread shows it.
 - **Chorus**: a project's set of region Wardens, asked every turn. Each project has its own.
 - **Layer 1 / Layer 2**: the chorus's two steps. Layer 1 (Haiku) detects: is this moment in my region, with a one-line why. On each yes, Layer 2 (Sonnet) confirms and picks the thing and where it's written. Layer 2 doesn't see Layer 1's why.
 - **Herald** *(planned)*: carries live data where Wardens carry static knowledge: what other agents and teammates are working on, in Linear, GitHub and Slack. Not built yet.
