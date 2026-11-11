@@ -8,7 +8,7 @@
   <a href="#building-blocks">Building blocks</a> · <a href="#developer-experience">Developer experience</a> · <a href="#agentic">Agentic</a> · <a href="#governance">Governance</a>
 </p>
 
-I'm Aron Greenspan. These repos are a decade of lessons from building software, packaged so I don't have to figure the same things out on every project. The building blocks are those answers. Coding agents ignored them and wrote parallel versions, so I built Foundry to point them at what the codebase already has. The long-term goal is tools for people, and their agents, to cooperate.
+These repos are a decade of lessons from building software, packaged so you don't have to figure the same things out on every project. The building blocks are those answers. Coding agents ignored them and wrote parallel versions, so Foundry was built to point them at what the codebase already has. The long-term goal is tools for people, and their agents, to cooperate.
 
 ---
 
@@ -16,7 +16,7 @@ I'm Aron Greenspan. These repos are a decade of lessons from building software, 
 
 **Stop rediscovering what you need to build.**
 
-Across my career I kept running into the same shapes of problem. More often than not, people built a one-off solution for each, often right next to another problem with the same shape. I pulled those problems out and built the best-shaped solution I could for each, so it can be reused wherever that problem shows up. Template is where they come together, and the packages below handle the most common problems on their own. json-rules, transitions, prisma-map and rules-builder run in production at the company where I work.
+The same shapes of problem come up on project after project. More often than not, people build a one-off solution for each, often right next to another problem with the same shape. Each problem here is pulled out and given the best-shaped solution, so it can be reused wherever that problem shows up. Template is where they come together, and the packages below handle the most common problems on their own. json-rules, transitions, prisma-map and rules-builder run in production at the company where Aron Greenspan works.
 
 ### template
 
@@ -60,7 +60,7 @@ Comes with template:
 
 **An agent that works like you do.** Giving your work a voice.
 
-Coding agents kept writing their own versions of what my repos already had, such as a second auth path beside the existing one. Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
+Coding agents kept writing their own versions of what these repos already had, such as a second auth path beside the existing one. Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
 
 ### Foundry
 
@@ -120,7 +120,7 @@ Our own challenge set for coding agents, from staff to architect tiers. Results 
 
 The long-term goal is tools for people, and their agents, to cooperate. The whitepaper and the proposals are designs for cooperation at scale: how groups set rules, hold each other accountable, and invest together without a central referee.
 
-**Planned: Inixiative.** change.org meets Kickstarter on blockchain. A governance platform that runs over time, with ownership tracked in tokens. A group funds an initiative in phases: members put money into escrow, the operator shows a milestone was met, the members vote, and only then is that phase's money released. An ongoing venture votes each period on whether to reinvest or pay out. Each initiative sets its own rules; the marketplace it runs in can't change them, move its funds or override its votes. It started as governance software; a friend pointed me to managing money as the practical place to start, because it forces real cooperation. Nothing is built for users yet. [The write-up](https://www.inixiative.com/proposals/platform/).
+**Planned: Inixiative.** change.org meets Kickstarter on blockchain. A governance platform that runs over time, with ownership tracked in tokens. A group funds an initiative in phases: members put money into escrow, the operator shows a milestone was met, the members vote, and only then is that phase's money released. An ongoing venture votes each period on whether to reinvest or pay out. Each initiative sets its own rules; the marketplace it runs in can't change them, move its funds or override its votes. It started as governance software; a friend suggested managing money as the practical place to start, because it forces real cooperation. Nothing is built for users yet. [The write-up](https://www.inixiative.com/proposals/platform/).
 
 **Planned: Livestock.** The first product meant to run on Inixiative: cattle trusts in Uruguay and Argentina, with ownership in tokens. Livestock handles the cattle side; Inixiative handles the funding, the milestones and the votes.
 
