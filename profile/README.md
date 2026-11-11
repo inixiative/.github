@@ -60,15 +60,20 @@ Comes with template:
 
 **An agent that works like you do.** Giving your work a voice.
 
-Coding agents kept writing their own versions of what these repos already had, such as a second auth path beside the existing one. Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your corpus (docs, rules, `CLAUDE.md`) is the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
+Coding agents kept writing their own versions of what these repos already had, such as a second auth path beside the existing one. Every agent session starts half-amnesiac. You pay a re-alignment tax: re-explaining your conventions, your decisions, your taste. The model and the harness are outside your control. Your docs, rules and `CLAUDE.md` are the one layer you do control, and Foundry gives you a tool to control it. The agent does what you want when it's told the right thing. The bet is that your corrections compile into docs that tell it automatically. In early runs, we gave the agent Aron's corrections before it planned, and the plans came out right. Oracle runs the tuning loop.
 
 ### Foundry
 
-The workspace around your agent: Claude Code and Codex, plus ACP apps. The voice of your project.
+The workspace around your agent: Claude Code and Codex, plus agent apps such as Paseo and T3 Code that speak the Agent Client Protocol (ACP). The voice of your project.
 
-- **Stop repeating yourself to Claude.** What you've already decided reaches every session. Foundry splits what your project knows across small agents called Wardens, each holding one part. When your request touches a Warden's part, it reminds your agent what already exists and where it's written down. They never block; your agent decides. *(Built; off by default. Turn the chorus on in settings.)*
+**What it does today**
+
+- **Stop repeating yourself to Claude.** What you've already decided reaches every session. Foundry splits what your project knows across small agents called Wardens, each holding one part. When your request touches a Warden's part, it reminds your agent what already exists and where it's written down. They never block; your agent decides. *(Off on a fresh install. Turn Wardens on per project with `"chorus": { "enabled": true }` in the repo's `.foundry/project.json`, or with the project's Chorus switch in Foundry's settings.)*
 - **Every agent you pay for, in one place.** Claude Code and Codex on your own subscriptions, a worker per thread, every session captured.
-- **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Host side built; joiner view in progress.)*
+
+**In progress**
+
+- **Stop being a meat proxy.** Your agent, their agent and the people in one thread, hashing out the work. *(Hosting a shared thread works; the view for people who join is in progress.)*
 - **Stop checking a dozen apps.** Whatever comes in (a Slack DM, a review request, an email) reaches you already researched and in context. It's read as data, so it can't instruct your agent. *(In progress: Kingdom streams the events; Foundry doesn't receive or sort them yet.)*
 - **Set up your repo.** Foundry reads your repo and builds the docs and Wardens. *(In progress.)*
 
@@ -88,7 +93,7 @@ Pass-through execution with tracking and audit, built on the permissions library
 
 ### KCP, the Kingdom CLI Proxy
 
-Built so far: `kcp login`, `status` and `map`. Next: Kingdom runs your provider CLIs with its stored credentials and streams the output back, so none sit on your machine. *(In progress.)*
+Runs your command-line tools through Kingdom so no token sits on your machine: Kingdom holds the credential, runs the real CLI and streams the output back. *(In progress: `kcp login`, `status` and `map` work today; running commands through Kingdom is not built yet.)*
 
 [GitHub](https://github.com/inixiative/kcp) · [npm](https://www.npmjs.com/package/@inixiative/kcp)
 
